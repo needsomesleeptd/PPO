@@ -81,5 +81,7 @@
 * СУБД: PostgreSQL
 
 ## Верхнеуровневое разбиение на компоненты
-![UML диаграмма классов](imgs/class_diag.svg)
+![UML диаграмма компонентов](imgs/components_diag.svg)
 
+## UML диаграмма классов
+![UML диаграмма классов](imgs/class_diag.svg)
