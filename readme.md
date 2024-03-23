@@ -72,3 +72,16 @@
 ## Формализация ключевых бизнес-процессов
 ![Диаграмма аутенфикации](imgs/BPMN_reg.svg)
 ![Диаграмма разметки](imgs/BPMN_mark.svg)
+
+## Технологический стек
+
+* Тип приложени: Web-SPA
+* Backend: golang
+* Frontend: React/Vue
+* СУБД: PostgreSQL
+
+## Верхнеуровневое разбиение на компоненты
+![UML диаграмма компонентов](imgs/components_diag.svg)
+
+## UML диаграмма классов
+![UML диаграмма классов](imgs/class_diag.svg)
