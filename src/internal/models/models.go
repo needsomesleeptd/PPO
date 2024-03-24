@@ -29,3 +29,9 @@ type MarkupType struct {
 	Description string
 	CreatorID   int
 }
+
+type Cookie struct {
+	Token   string
+	UserID  uint64
+	ExpTime time.Duration
+}
