@@ -2,7 +2,7 @@ package service
 
 import (
 	authRepo "annotater/internal/bl/auth/authRepo"
-	userRepo "annotater/internal/bl/auth/userRepo"
+	userRepo "annotater/internal/bl/userService/userRepo"
 	"annotater/internal/models"
 	"time"
 

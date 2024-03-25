@@ -1,7 +1,7 @@
 package service
 
 import (
-	repository "annotater/internal/bl/auth/userRepo"
+	repository "annotater/internal/bl/userService/userRepo"
 
 	"github.com/pkg/errors"
 )
