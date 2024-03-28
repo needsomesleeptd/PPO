@@ -7,7 +7,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-var CHANGE_ROLE_ERROR_STR = "Error in changing user role"
+var ERROR_CHANGE_ROLE_STR = "Error in changing user role"
 
 type IUserService interface {
 	ChangeUserRoleByLogin(login string) error
@@ -30,7 +30,7 @@ func IsRolePermitted(currRole models.Role, reqRole models.Role) bool { //Depends
 func (serv *UserService) ChangeUserRoleByLogin(login string) error { // Для созданяи админа, должна быть маграция бд на старте приложения
 	err := serv.userRepo.UpdateUserByLogin(login)
 	if err != nil {
-		return errors.Wrap(err, "Error in changing user role")
+		return errors.Wrap(err, ERROR_CHANGE_ROLE_STR)
 	}
 	return err
 }

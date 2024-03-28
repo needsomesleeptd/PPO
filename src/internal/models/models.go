@@ -38,6 +38,7 @@ type User struct {
 type MarkupType struct {
 	Description string
 	CreatorID   int
+	ID          uint64
 }
 
 type Cookie struct {

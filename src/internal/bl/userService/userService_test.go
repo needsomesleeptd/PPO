@@ -29,7 +29,7 @@ func TestUserService_ChangeUserRoleByLogin(t *testing.T) {
 		errStr  error
 	}{
 		{
-			name: "Valid Check one markup",
+			name: "Update user no err",
 			prepare: func(f *fields) {
 				f.userRepo.EXPECT().UpdateUserByLogin(TEST_VALID_LOGIN).Return(nil)
 			},
@@ -38,13 +38,13 @@ func TestUserService_ChangeUserRoleByLogin(t *testing.T) {
 			errStr:  nil,
 		},
 		{
-			name: "Invalid Check one markup",
+			name: "Update user err",
 			prepare: func(f *fields) {
 				f.userRepo.EXPECT().UpdateUserByLogin(TEST_VALID_LOGIN).Return(errors.New(""))
 			},
 			args:    args{login: TEST_VALID_LOGIN},
 			wantErr: true,
-			errStr:  errors.New(service.CHANGE_ROLE_ERROR_STR + ": "),
+			errStr:  errors.New(service.ERROR_CHANGE_ROLE_STR + ": "),
 		},
 	}
 	for _, tt := range tests {

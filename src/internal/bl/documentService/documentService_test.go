@@ -12,8 +12,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const TEST_ERROR_STR string = "Error in Checking document"
-
 func TestDocumentService_LoadDocument(t *testing.T) {
 	type fields struct {
 		repo          *mock_repository.MockIDocumentRepository
@@ -125,7 +123,7 @@ func TestDocumentService_CheckDocument(t *testing.T) {
 			},
 			args:    args{document: models.Document{}},
 			wantErr: true,
-			errStr:  errors.New(TEST_ERROR_STR + ": "),
+			errStr:  errors.New(service.ERROR_CHECKING_DOCUMENT + ": "),
 			want:    nil,
 		},
 		{
