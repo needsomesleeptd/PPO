@@ -17,7 +17,7 @@ type AnotattionService struct {
 	repo repository.IAnotattionRepository
 }
 
-func New(pRep repository.IAnotattionRepository) IAnotattionService {
+func NewAnnotattionService(pRep repository.IAnotattionRepository) IAnotattionService {
 	return &AnotattionService{
 		repo: pRep,
 	}
@@ -25,6 +25,7 @@ func New(pRep repository.IAnotattionRepository) IAnotattionService {
 
 func (serv *AnotattionService) AddAnottation(anotattion *models.Markup) error {
 	err := serv.repo.AddAnottation(anotattion)
+
 	if err != nil {
 		return errors.Wrap(err, "Error in adding anotattion")
 	}

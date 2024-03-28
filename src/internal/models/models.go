@@ -20,9 +20,9 @@ type Markup struct {
 type Role int
 
 const (
-	user Role = iota
-	admin
-	controller
+	Sender Role = iota // Role check depends on the order
+	Controller
+	Admin
 )
 
 type User struct {
@@ -43,6 +43,6 @@ type MarkupType struct {
 type Cookie struct {
 	Token   string
 	UserID  uint64
-	ExpTime time.Duration
+	ExpTime time.Duration // think about securing cookies, store cookies on backend (hashing or storing)
 	Role    Role
 }

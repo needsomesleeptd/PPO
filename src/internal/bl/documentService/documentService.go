@@ -26,6 +26,10 @@ func NewDocumentService(pRep repository.IDocumentRepository, pNN nn.INeuralNetwo
 }
 
 func (serv *DocumentService) LoadDocument(document models.Document) error {
+	/*err := pdf.Validate(bytes.NewReader(document.DocumentData))
+	if err != nil {
+		errors.Wrap(err, "Loaded file is not a valid pdf file")
+	}*/
 	err := serv.repo.AddDocument(&document)
 	if err != nil {
 		return errors.Wrap(err, "Error in loading document")

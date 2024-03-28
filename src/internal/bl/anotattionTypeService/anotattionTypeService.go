@@ -23,12 +23,12 @@ func NewAnotattionTypeService(pRep repository.IAnotattionTypeRepository) IAnotat
 	}
 }
 
-func (serv *AnotattionTypeService) AddAnottationType(anotattionType *models.MarkupType) error {
+func (serv *AnotattionTypeService) AddAnottationType(anotattionType *models.MarkupType) error { //
 	err := serv.repo.AddAnottationType(anotattionType)
 	if err != nil {
 		return errors.Wrap(err, "Error in adding anotattion")
 	}
-	return err
+	return err //create service for validation, answering if you have access or not (getting userID as an argument)
 }
 
 func (serv *AnotattionTypeService) DeleteAnotattionType(id uint64) error {

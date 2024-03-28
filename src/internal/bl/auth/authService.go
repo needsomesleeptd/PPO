@@ -26,7 +26,7 @@ func (serv *AuthService) Auth(candidate models.User) (*models.User, error) {
 		return nil, errors.Wrap(err, "Error in getting user data")
 	}
 	if user.Login == candidate.Login {
-		return nil, errors.New("There is a user with this login already")
+		return nil, errors.New("There is a user with this login already") //replace errors with const values
 	}
 	err = serv.userRepo.AddUser(candidate)
 	if err != nil {
