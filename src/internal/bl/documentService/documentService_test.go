@@ -5,12 +5,27 @@ import (
 	mock_nn "annotater/internal/mocks/bl/NN"
 	mock_repository "annotater/internal/mocks/bl/documentService/documentRepo"
 	"annotater/internal/models"
+	"bytes"
 	"testing"
 
 	"github.com/golang/mock/gomock"
 	"github.com/pkg/errors"
+	"github.com/signintech/gopdf"
 	"github.com/stretchr/testify/require"
 )
+
+var TEST_VALID_PDF *gopdf.GoPdf = &gopdf.GoPdf{}
+
+func createPDFBuffer(pdf *gopdf.GoPdf) []byte {
+	if pdf == nil {
+		return []byte{1}
+	}
+	pdf.Start(gopdf.Config{PageSize: *gopdf.PageSizeA4})
+	var buf bytes.Buffer
+	pdf.WriteTo(&buf)
+
+	return buf.Bytes()
+}
 
 func TestDocumentService_LoadDocument(t *testing.T) {
 	type fields struct {
@@ -29,22 +44,32 @@ func TestDocumentService_LoadDocument(t *testing.T) {
 		errStr  error
 	}{
 		{
-			name: "SuccessFul Load Document",
+			name: "Successful Load Document",
 			prepare: func(f *fields) {
-				f.repo.EXPECT().AddDocument(&models.Document{}).Return(nil)
+				f.repo.EXPECT().AddDocument(&models.Document{
+					DocumentData: createPDFBuffer(TEST_VALID_PDF),
+				}).Return(nil)
 			},
-			args:    args{document: models.Document{ChecksCount: 0}},
+			args:    args{document: models.Document{DocumentData: createPDFBuffer(TEST_VALID_PDF)}},
 			wantErr: false,
 			errStr:  nil,
 		},
 		{
 			name: "Impossible to add to Repo",
 			prepare: func(f *fields) {
-				f.repo.EXPECT().AddDocument(&models.Document{}).Return(errors.Errorf("%s", ""))
+				f.repo.EXPECT().AddDocument(&models.Document{
+					DocumentData: createPDFBuffer(TEST_VALID_PDF),
+				}).Return(errors.Errorf("%s", ""))
 			},
-			args:    args{document: models.Document{ChecksCount: 0}},
+			args:    args{document: models.Document{DocumentData: createPDFBuffer(TEST_VALID_PDF)}},
 			wantErr: true,
-			errStr:  errors.New("Error in loading document: "),
+			errStr:  errors.New(service.LOADING_DOCUMENT_ERR_STR + ": "),
+		},
+		{
+			name:    "invalid file format",
+			args:    args{document: models.Document{DocumentData: createPDFBuffer(nil)}},
+			wantErr: true,
+			errStr:  errors.New(service.DOCUMENT_FORMAT_ERR_STR),
 		},
 	}
 	for _, tt := range tests {
@@ -91,13 +116,15 @@ func TestDocumentService_CheckDocument(t *testing.T) {
 		{
 			name: "Valid Check one markup",
 			prepare: func(f *fields) {
-				f.neuralNetwork.EXPECT().Predict(models.Document{}).Return([]*models.Markup{
+				f.neuralNetwork.EXPECT().Predict(models.Document{
+					DocumentData: createPDFBuffer(TEST_VALID_PDF)}).Return([]*models.Markup{
 					{ErrorBB: []float32{0.4, 0.3, 0.2},
 						ClassLabel: 1,
 					},
 				}, nil)
 			},
-			args:    args{document: models.Document{}},
+			args: args{document: models.Document{
+				DocumentData: createPDFBuffer(TEST_VALID_PDF)}},
 			wantErr: false,
 			errStr:  nil,
 			want: []*models.Markup{
@@ -109,9 +136,11 @@ func TestDocumentService_CheckDocument(t *testing.T) {
 		{
 			name: "Valid check zero markups",
 			prepare: func(f *fields) {
-				f.neuralNetwork.EXPECT().Predict(models.Document{}).Return(nil, nil)
+				f.neuralNetwork.EXPECT().Predict(models.Document{
+					DocumentData: createPDFBuffer(TEST_VALID_PDF)}).Return(nil, nil)
 			},
-			args:    args{document: models.Document{}},
+			args: args{document: models.Document{
+				DocumentData: createPDFBuffer(TEST_VALID_PDF)}},
 			wantErr: false,
 			errStr:  nil,
 			want:    nil,
@@ -119,17 +148,18 @@ func TestDocumentService_CheckDocument(t *testing.T) {
 		{
 			name: "Check error",
 			prepare: func(f *fields) {
-				f.neuralNetwork.EXPECT().Predict(models.Document{}).Return(nil, errors.New(""))
+				f.neuralNetwork.EXPECT().Predict(models.Document{
+					DocumentData: createPDFBuffer(TEST_VALID_PDF)}).Return(nil, errors.New(""))
 			},
-			args:    args{document: models.Document{}},
+			args:    args{document: models.Document{DocumentData: createPDFBuffer(TEST_VALID_PDF)}},
 			wantErr: true,
-			errStr:  errors.New(service.ERROR_CHECKING_DOCUMENT + ": "),
+			errStr:  errors.New(service.CHECKING_DOCUMENT_ERR_STR + ": "),
 			want:    nil,
 		},
 		{
 			name: "Valid check numerous markups",
 			prepare: func(f *fields) {
-				f.neuralNetwork.EXPECT().Predict(models.Document{}).Return([]*models.Markup{
+				f.neuralNetwork.EXPECT().Predict(models.Document{DocumentData: createPDFBuffer(TEST_VALID_PDF)}).Return([]*models.Markup{
 					{ErrorBB: []float32{0.4, 0.3, 0.2},
 						ClassLabel: 1,
 					},
@@ -138,7 +168,7 @@ func TestDocumentService_CheckDocument(t *testing.T) {
 					},
 				}, nil)
 			},
-			args:    args{document: models.Document{}},
+			args:    args{document: models.Document{DocumentData: createPDFBuffer(TEST_VALID_PDF)}},
 			wantErr: false,
 			errStr:  nil,
 			want: []*models.Markup{
@@ -149,6 +179,14 @@ func TestDocumentService_CheckDocument(t *testing.T) {
 					ClassLabel: 2,
 				},
 			},
+		},
+		{
+			name: "Invalid File Format",
+			args: args{document: models.Document{
+				DocumentData: createPDFBuffer(nil)}},
+			wantErr: true,
+			errStr:  errors.New(service.DOCUMENT_FORMAT_ERR_STR),
+			want:    nil,
 		},
 	}
 	for _, tt := range tests {

@@ -8,9 +8,9 @@ import (
 )
 
 const (
-	ERROR_ADDING_ANNOTATTION_STR   = "Error in adding anotattion"
-	ERROR_DELETING_ANNOTATTION_STR = "Error in deleting anotattion"
-	ERROR_GETTING_ANNOTATTION_STR  = "Error in deleting anotattion"
+	ADDING_ANNOTATTION_ERR_STR      = "Error in adding anotattion"
+	DELETING_ANNOTATTION_ERR_STR    = "Error in deleting anotattion"
+	GETTING_ANNOTATTION_STR_ERR_STR = "Error in deleting anotattion"
 )
 
 type IAnotattionTypeService interface {
@@ -32,15 +32,15 @@ func NewAnotattionTypeService(pRep repository.IAnotattionTypeRepository) IAnotat
 func (serv *AnotattionTypeService) AddAnottationType(anotattionType *models.MarkupType) error { //
 	err := serv.repo.AddAnottationType(anotattionType)
 	if err != nil {
-		return errors.Wrap(err, ERROR_ADDING_ANNOTATTION_STR)
+		return errors.Wrap(err, ADDING_ANNOTATTION_ERR_STR)
 	}
-	return err //create service for validation, answering if you have access or not (getting userID as an argument)
+	return err
 }
 
 func (serv *AnotattionTypeService) DeleteAnotattionType(id uint64) error {
 	err := serv.repo.DeleteAnotattionType(id)
 	if err != nil {
-		return errors.Wrap(err, ERROR_DELETING_ANNOTATTION_STR)
+		return errors.Wrap(err, DELETING_ANNOTATTION_ERR_STR)
 	}
 	return err
 }
@@ -48,7 +48,7 @@ func (serv *AnotattionTypeService) DeleteAnotattionType(id uint64) error {
 func (serv *AnotattionTypeService) GetAnottationTypeByID(id uint64) (*models.MarkupType, error) {
 	markup, err := serv.repo.GetAnottationTypeByID(id)
 	if err != nil {
-		return nil, errors.Wrap(err, ERROR_GETTING_ANNOTATTION_STR)
+		return nil, errors.Wrap(err, GETTING_ANNOTATTION_STR_ERR_STR)
 	}
 	return markup, err
 }

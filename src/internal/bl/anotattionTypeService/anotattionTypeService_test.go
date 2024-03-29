@@ -44,7 +44,7 @@ func TestAnotattionTypeService_AddAnottationType(t *testing.T) {
 			},
 			wantErr: true,
 			args:    args{anotattionType: &models.MarkupType{}},
-			errStr:  errors.New(service.ERROR_ADDING_ANNOTATTION_STR + ": "),
+			errStr:  errors.New(service.ADDING_ANNOTATTION_ERR_STR + ": "),
 		},
 	}
 	for _, tt := range tests {
@@ -100,7 +100,7 @@ func TestAnotattionTypeService_DeleteAnotattionType(t *testing.T) {
 			},
 			wantErr: true,
 			args:    args{id: TEST_BASIC_ID},
-			errStr:  errors.New(service.ERROR_DELETING_ANNOTATTION_STR + ": "),
+			errStr:  errors.New(service.DELETING_ANNOTATTION_ERR_STR + ": "),
 		},
 	}
 	for _, tt := range tests {
@@ -158,7 +158,7 @@ func TestAnotattionTypeService_GetAnottationTypeByID(t *testing.T) {
 			},
 			wantErr: true,
 			args:    args{id: TEST_BASIC_ID},
-			errStr:  errors.New(service.ERROR_GETTING_ANNOTATTION_STR + ": "),
+			errStr:  errors.New(service.GETTING_ANNOTATTION_STR_ERR_STR + ": "),
 			want:    nil,
 		},
 	}

@@ -5,8 +5,9 @@ import (
 )
 
 type Document struct {
+	ID           uint64
 	PageCount    int
-	DocumentData []byte
+	DocumentData []byte //pdf file -- the whole file
 	ChecksCount  int
 	CreatorID    uint64
 	CreationTime time.Time
