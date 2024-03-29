@@ -7,7 +7,7 @@ type IUserRepository interface {
 	GetUserByID(id uint64) (*models.User, error)
 	UpdateUserByLogin(login string) error
 	DeleteUserByLogin(login string) error
-	AddUser(user models.User) error
+	CreateUser(user models.User) error
 }
 
 //Delete getting by cookie

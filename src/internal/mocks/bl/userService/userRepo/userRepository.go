@@ -34,18 +34,18 @@ func (m *MockIUserRepository) EXPECT() *MockIUserRepositoryMockRecorder {
 	return m.recorder
 }
 
-// AddUser mocks base method.
-func (m *MockIUserRepository) AddUser(user models.User) error {
+// CreateUser mocks base method.
+func (m *MockIUserRepository) CreateUser(user models.User) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddUser", user)
+	ret := m.ctrl.Call(m, "CreateUser", user)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// AddUser indicates an expected call of AddUser.
-func (mr *MockIUserRepositoryMockRecorder) AddUser(user interface{}) *gomock.Call {
+// CreateUser indicates an expected call of CreateUser.
+func (mr *MockIUserRepositoryMockRecorder) CreateUser(user interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddUser", reflect.TypeOf((*MockIUserRepository)(nil).AddUser), user)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUser", reflect.TypeOf((*MockIUserRepository)(nil).CreateUser), user)
 }
 
 // DeleteUserByLogin mocks base method.
@@ -60,21 +60,6 @@ func (m *MockIUserRepository) DeleteUserByLogin(login string) error {
 func (mr *MockIUserRepositoryMockRecorder) DeleteUserByLogin(login interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteUserByLogin", reflect.TypeOf((*MockIUserRepository)(nil).DeleteUserByLogin), login)
-}
-
-// GetUserByCookie mocks base method.
-func (m *MockIUserRepository) GetUserByCookie(cookie models.Cookie) (*models.User, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetUserByCookie", cookie)
-	ret0, _ := ret[0].(*models.User)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetUserByCookie indicates an expected call of GetUserByCookie.
-func (mr *MockIUserRepositoryMockRecorder) GetUserByCookie(cookie interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByCookie", reflect.TypeOf((*MockIUserRepository)(nil).GetUserByCookie), cookie)
 }
 
 // GetUserByID mocks base method.

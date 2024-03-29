@@ -43,8 +43,7 @@ type MarkupType struct {
 	ID          uint64
 }
 
-type Cookie struct {
-	Token   string
+type Token struct {
 	UserID  uint64
 	ExpTime time.Duration // think about securing cookies, store cookies on backend (hashing or storing)
 	Role    Role

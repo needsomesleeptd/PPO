@@ -1,60 +1,85 @@
 package service
 
 import (
-	authRepo "annotater/internal/bl/auth/authRepo"
 	userRepo "annotater/internal/bl/userService/userRepo"
 	"annotater/internal/models"
-	"time"
+	auth_utils "annotater/internal/pkg/authUtils"
+	"fmt"
 
-	"github.com/google/uuid"
 	"github.com/pkg/errors"
+)
+
+var (
+	NO_LOGIN_ERR          = errors.New("Login cannot be empty")
+	NO_PASSWD_ERR         = errors.New("Password cannot be empty")
+	GETTING_USER_DATA_ERR = errors.New("There is a user with this login already")
+	CREATING_USER_ERR     = errors.New("Error in creating user")
+	GENERATING_TOKEN_ERR  = errors.New("Error in generating token for user")
+	GENERATING_HASH_ERR   = errors.New("Error in generating passwdHash for user")
 )
 
 type IAuthService interface {
 	SignIn(user *models.User) (*models.User, error)
-	Auth(candidate *models.User) (*models.Cookie, error)
+	Auth(candidate *models.User) error
 }
 
 type AuthService struct {
-	userRepo userRepo.IUserRepository
-	authRepo authRepo.IAuthRepository
+	userRepo       userRepo.IUserRepository
+	passwordHasher auth_utils.IPasswordHasher
+	tokenizer      auth_utils.ITokenHandler
+	key            string
 }
 
-func (serv *AuthService) Auth(candidate models.User) (*models.User, error) {
+func (serv *AuthService) Auth(candidate models.User) error {
+	var passHash string
+	if candidate.Login == "" {
+		return NO_LOGIN_ERR
+	}
+
+	if candidate.Password == "" {
+		return NO_PASSWD_ERR
+	}
 	user, err := serv.userRepo.GetUserByLogin(candidate.Login)
 	if err != nil {
-		return nil, errors.Wrap(err, "Error in getting user data")
+		return errors.Wrap(err, GETTING_USER_DATA_ERR.Error())
 	}
 	if user.Login == candidate.Login {
-		return nil, errors.New("There is a user with this login already") //replace errors with const values
+		return GETTING_USER_DATA_ERR //replace errors with const values
 	}
-	err = serv.userRepo.AddUser(candidate)
+
+	passHash, err = serv.passwordHasher.GenerateHash(candidate.Password)
 	if err != nil {
-		return nil, errors.Wrap(err, "Error in saving user")
+		return errors.Wrap(err, GENERATING_HASH_ERR.Error())
 	}
-	return &candidate, nil
+	candidate.Password = passHash
+
+	err = serv.userRepo.CreateUser(candidate)
+	if err != nil {
+		return errors.Wrap(err, CREATING_USER_ERR.Error())
+	}
+	return nil
 }
 
-func (serv *AuthService) SignIn(candidate *models.User) (*models.Cookie, error) {
-	user, err := serv.userRepo.GetUserByLogin(candidate.Login)
+func (serv *AuthService) SignIn(candidate *models.User) (tokenStr string, err error) {
+	var user *models.User
+	if candidate.Login == "" {
+		return "", fmt.Errorf("должно быть указано имя пользователя")
+	}
+
+	if candidate.Password == "" {
+		return "", fmt.Errorf("должен быть указан пароль")
+	}
+	user, err = serv.userRepo.GetUserByLogin(candidate.Login)
 	if err != nil {
-		return nil, err
+		return "", errors.Wrap(err, GETTING_USER_DATA_ERR.Error())
 	}
-	if candidate.Password != user.Password {
-		return nil, errors.New("The passwords didn't match")
-	}
-
-	token := models.Cookie{
-		UserID:  user.ID,
-		ExpTime: (3600 * 60 * 48) * time.Second, // 2 days
-		Token:   uuid.NewString(),
-		Role:    user.Role,
-	}
-	err = serv.authRepo.AddToken(token)
+	err = serv.passwordHasher.ComparePasswordhash(user.Password, candidate.Password)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-
-	return &token, nil
-
+	tokenStr, err = serv.tokenizer.GenerateToken(*candidate, serv.key)
+	if err != nil {
+		return "", errors.Wrap(err, GENERATING_TOKEN_ERR.Error())
+	}
+	return tokenStr, nil
 }
