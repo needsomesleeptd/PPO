@@ -4,7 +4,6 @@ import (
 	userRepo "annotater/internal/bl/userService/userRepo"
 	"annotater/internal/models"
 	auth_utils "annotater/internal/pkg/authUtils"
-	"fmt"
 
 	"github.com/pkg/errors"
 )
@@ -16,6 +15,7 @@ var (
 	CREATING_USER_ERR     = errors.New("Error in creating user")
 	GENERATING_TOKEN_ERR  = errors.New("Error in generating token for user")
 	GENERATING_HASH_ERR   = errors.New("Error in generating passwdHash for user")
+	CMP_PASSED_HASH_ERR   = errors.New("Error in comparing hash and passwd")
 )
 
 type IAuthService interface {
@@ -41,19 +41,13 @@ func NewAuthService(repo userRepo.IUserRepository, hasher auth_utils.IPasswordHa
 
 func (serv *AuthService) Auth(candidate *models.User) error {
 	var passHash string
+	var err error
 	if candidate.Login == "" {
 		return NO_LOGIN_ERR
 	}
 
 	if candidate.Password == "" {
 		return NO_PASSWD_ERR
-	}
-	user, err := serv.userRepo.GetUserByLogin(candidate.Login)
-	if err != nil {
-		return errors.Wrap(err, GETTING_USER_DATA_ERR.Error())
-	}
-	if user.Login == candidate.Login {
-		return GETTING_USER_DATA_ERR
 	}
 
 	passHash, err = serv.passwordHasher.GenerateHash(candidate.Password)
@@ -72,19 +66,19 @@ func (serv *AuthService) Auth(candidate *models.User) error {
 func (serv *AuthService) SignIn(candidate *models.User) (tokenStr string, err error) {
 	var user *models.User
 	if candidate.Login == "" {
-		return "", fmt.Errorf("должно быть указано имя пользователя")
+		return "", NO_LOGIN_ERR
 	}
 
 	if candidate.Password == "" {
-		return "", fmt.Errorf("должен быть указан пароль")
+		return "", NO_PASSWD_ERR
 	}
 	user, err = serv.userRepo.GetUserByLogin(candidate.Login)
 	if err != nil {
 		return "", errors.Wrap(err, GETTING_USER_DATA_ERR.Error())
 	}
-	err = serv.passwordHasher.ComparePasswordhash(user.Password, candidate.Password)
+	err = serv.passwordHasher.ComparePasswordhash(candidate.Password, user.Password)
 	if err != nil {
-		return "", err
+		return "", errors.Wrap(err, CMP_PASSED_HASH_ERR.Error())
 	}
 	tokenStr, err = serv.tokenizer.GenerateToken(*candidate, serv.key)
 	if err != nil {
