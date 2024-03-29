@@ -19,7 +19,7 @@ var (
 )
 
 type IAuthService interface {
-	SignIn(user *models.User) (*models.User, error)
+	SignIn(candidate *models.User) (tokenStr string, err error)
 	Auth(candidate *models.User) error
 }
 
@@ -30,7 +30,16 @@ type AuthService struct {
 	key            string
 }
 
-func (serv *AuthService) Auth(candidate models.User) error {
+func NewAuthService(repo userRepo.IUserRepository, hasher auth_utils.IPasswordHasher, token auth_utils.ITokenHandler, k string) IAuthService {
+	return &AuthService{
+		userRepo:       repo,
+		passwordHasher: hasher,
+		tokenizer:      token,
+		key:            k,
+	}
+}
+
+func (serv *AuthService) Auth(candidate *models.User) error {
 	var passHash string
 	if candidate.Login == "" {
 		return NO_LOGIN_ERR
@@ -44,7 +53,7 @@ func (serv *AuthService) Auth(candidate models.User) error {
 		return errors.Wrap(err, GETTING_USER_DATA_ERR.Error())
 	}
 	if user.Login == candidate.Login {
-		return GETTING_USER_DATA_ERR //replace errors with const values
+		return GETTING_USER_DATA_ERR
 	}
 
 	passHash, err = serv.passwordHasher.GenerateHash(candidate.Password)
@@ -53,7 +62,7 @@ func (serv *AuthService) Auth(candidate models.User) error {
 	}
 	candidate.Password = passHash
 
-	err = serv.userRepo.CreateUser(candidate)
+	err = serv.userRepo.CreateUser(*candidate)
 	if err != nil {
 		return errors.Wrap(err, CREATING_USER_ERR.Error())
 	}
