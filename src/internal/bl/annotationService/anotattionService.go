@@ -3,13 +3,19 @@ package service
 import (
 	repository "annotater/internal/bl/annotationService/annotattionRepo"
 	"annotater/internal/models"
+	"bytes"
+	"image"
 
 	"github.com/pkg/errors"
 )
 
-var ADDING_ANNOT_ERR_STR = "Error in adding anotattion"
-var DELETING_ANNOT_ERR_STR = "Error in deleting anotattion"
-var GETTING_ANNOT_ERR_STR = "Error in getting anotattion"
+const (
+	ADDING_ANNOT_ERR_STR   = "Error in adding anotattion"
+	DELETING_ANNOT_ERR_STR = "Error in deleting anotattion"
+	GETTING_ANNOT_ERR_STR  = "Error in getting anotattion"
+	INVALID_BBS_ERR_STR    = "Invalid markups bounding boxes"
+	INVALID_FILE_ERR_STR   = "Invalid filetype" //checking only png files
+)
 
 type IAnotattionService interface {
 	AddAnottation(anotattion *models.Markup) error
@@ -27,9 +33,35 @@ func NewAnnotattionService(pRep repository.IAnotattionRepository) IAnotattionSer
 	}
 }
 
-func (serv *AnotattionService) AddAnottation(anotattion *models.Markup) error {
-	err := serv.repo.AddAnottation(anotattion)
+func AreBBsValid(slice []float32) bool { //TODO:: think if i want to export everything
+	for _, value := range slice {
+		if value < 0.0 || value > 1.0 {
+			return false
+		}
+	}
+	return true
+}
 
+func CheckPngFile(pngFile []byte) error {
+	_, _, err := image.Decode(bytes.NewReader(pngFile))
+	if err != nil {
+		return err
+	}
+	return nil
+
+}
+
+func (serv *AnotattionService) AddAnottation(anotattion *models.Markup) error {
+	if !AreBBsValid(anotattion.ErrorBB) {
+		return errors.New(INVALID_BBS_ERR_STR)
+	}
+
+	err := CheckPngFile(anotattion.PageData)
+	if err != nil {
+		return errors.New(INVALID_FILE_ERR_STR)
+	}
+
+	err = serv.repo.AddAnottation(anotattion)
 	if err != nil {
 		return errors.Wrap(err, ADDING_ANNOT_ERR_STR)
 	}

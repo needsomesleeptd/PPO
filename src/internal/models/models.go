@@ -13,7 +13,8 @@ type Document struct {
 }
 
 type Markup struct {
-	ErrorBB    []float32
+	PageData   []byte    //png file -- the page data
+	ErrorBB    []float32 //Bounding boxes in yolov8 format
 	ClassLabel uint64
 }
 
