@@ -115,7 +115,7 @@ func TestAuthService_Auth(t *testing.T) {
 			}
 
 			s := service.NewAuthService(f.userRepo, f.passwordHasher, f.tokenizer, f.key)
-			err := s.Auth(&tt.args.candidate)
+			err := s.SignUp(&tt.args.candidate)
 			if tt.wantErr {
 				require.Equal(t, tt.errStr.Error(), err.Error())
 			} else {

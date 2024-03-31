@@ -20,7 +20,7 @@ var (
 
 type IAuthService interface {
 	SignIn(candidate *models.User) (tokenStr string, err error)
-	Auth(candidate *models.User) error
+	SignUp(candidate *models.User) error
 }
 
 type AuthService struct {
@@ -39,7 +39,7 @@ func NewAuthService(repo userRepo.IUserRepository, hasher auth_utils.IPasswordHa
 	}
 }
 
-func (serv *AuthService) Auth(candidate *models.User) error {
+func (serv *AuthService) SignUp(candidate *models.User) error {
 	var passHash string
 	var err error
 	if candidate.Login == "" {
