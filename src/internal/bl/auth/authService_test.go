@@ -53,7 +53,7 @@ func TestAuthService_Auth(t *testing.T) {
 		{
 			name: "Valid Created User",
 			prepare: func(f *fields) {
-				f.userRepo.EXPECT().CreateUser(VALID_USER_IN_DB).Return(nil)
+				f.userRepo.EXPECT().CreateUser(&VALID_USER_IN_DB).Return(nil)
 				f.passwordHasher.EXPECT().GenerateHash(VALID_USER.Password).Return(TEST_HASH_PASSWD, nil)
 
 			},
@@ -91,7 +91,7 @@ func TestAuthService_Auth(t *testing.T) {
 			name: "CreateUser error",
 			prepare: func(f *fields) {
 				f.passwordHasher.EXPECT().GenerateHash(VALID_USER.Password).Return(TEST_HASH_PASSWD, nil)
-				f.userRepo.EXPECT().CreateUser(VALID_USER_IN_DB).Return(errors.New(""))
+				f.userRepo.EXPECT().CreateUser(&VALID_USER_IN_DB).Return(errors.New(""))
 			},
 			args:    args{VALID_USER},
 			want:    models.User{},

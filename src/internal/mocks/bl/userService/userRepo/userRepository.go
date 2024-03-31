@@ -35,7 +35,7 @@ func (m *MockIUserRepository) EXPECT() *MockIUserRepositoryMockRecorder {
 }
 
 // CreateUser mocks base method.
-func (m *MockIUserRepository) CreateUser(user models.User) error {
+func (m *MockIUserRepository) CreateUser(user *models.User) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateUser", user)
 	ret0, _ := ret[0].(error)

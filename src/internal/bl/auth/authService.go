@@ -56,7 +56,7 @@ func (serv *AuthService) Auth(candidate *models.User) error {
 	}
 	candidate.Password = passHash
 
-	err = serv.userRepo.CreateUser(*candidate)
+	err = serv.userRepo.CreateUser(candidate)
 	if err != nil {
 		return errors.Wrap(err, CREATING_USER_ERR.Error())
 	}
