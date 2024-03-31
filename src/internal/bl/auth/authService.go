@@ -54,9 +54,10 @@ func (serv *AuthService) SignUp(candidate *models.User) error {
 	if err != nil {
 		return errors.Wrap(err, GENERATING_HASH_ERR.Error())
 	}
-	candidate.Password = passHash
+	candidateHashedPasswd := *candidate
+	candidateHashedPasswd.Password = passHash
 
-	err = serv.userRepo.CreateUser(candidate)
+	err = serv.userRepo.CreateUser(&candidateHashedPasswd)
 	if err != nil {
 		return errors.Wrap(err, CREATING_USER_ERR.Error())
 	}

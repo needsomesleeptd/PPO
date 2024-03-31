@@ -40,9 +40,9 @@ func (repo *DocumentRepositoryAdapter) GetDocumentByID(id uint64) (*models.Docum
 }
 
 func (repo *DocumentRepositoryAdapter) DeleteDocumentByID(id uint64) error {
-	tx := repo.db.Delete(&models_da.User{}, id) // specifically for gorm
+	tx := repo.db.Delete(models.Document{}, id) // specifically for gorm
 	if tx.Error != nil {
-		return errors.Wrap(tx.Error, "Error in updating user")
+		return errors.Wrap(tx.Error, "Error in deleting document")
 	}
 	return nil
 }

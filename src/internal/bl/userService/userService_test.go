@@ -3,6 +3,7 @@ package service_test
 import (
 	service "annotater/internal/bl/userService"
 	mock_repository "annotater/internal/mocks/bl/userService/userRepo"
+	"annotater/internal/models"
 	"errors"
 	"testing"
 
@@ -19,6 +20,7 @@ func TestUserService_ChangeUserRoleByLogin(t *testing.T) {
 	}
 	type args struct {
 		login string
+		user  *models.User
 	}
 	tests := []struct {
 		name    string
@@ -33,7 +35,7 @@ func TestUserService_ChangeUserRoleByLogin(t *testing.T) {
 			prepare: func(f *fields) {
 				f.userRepo.EXPECT().UpdateUserByLogin(TEST_VALID_LOGIN).Return(nil)
 			},
-			args:    args{login: TEST_VALID_LOGIN},
+			args:    args{login: TEST_VALID_LOGIN, user: &models.User{}},
 			wantErr: false,
 			errStr:  nil,
 		},
@@ -42,7 +44,7 @@ func TestUserService_ChangeUserRoleByLogin(t *testing.T) {
 			prepare: func(f *fields) {
 				f.userRepo.EXPECT().UpdateUserByLogin(TEST_VALID_LOGIN).Return(errors.New(""))
 			},
-			args:    args{login: TEST_VALID_LOGIN},
+			args:    args{login: TEST_VALID_LOGIN, user: &models.User{}},
 			wantErr: true,
 			errStr:  errors.New(service.ERROR_CHANGE_ROLE_STR + ": "),
 		},
@@ -59,7 +61,7 @@ func TestUserService_ChangeUserRoleByLogin(t *testing.T) {
 			}
 
 			s := service.NewUserService(f.userRepo)
-			err := s.ChangeUserRoleByLogin(tt.args.login)
+			err := s.ChangeUserRoleByLogin(tt.args.login, tt.args.user)
 			if tt.wantErr {
 				require.Equal(t, tt.errStr.Error(), err.Error())
 			} else {

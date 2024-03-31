@@ -20,7 +20,8 @@ func NewAnotattionRepositoryAdapter(srcDB *gorm.DB) repository.IAnotattionReposi
 }
 
 func (repo *AnotattionRepositoryAdapter) AddAnottation(markUp *models.Markup) error {
-	tx := repo.db.Create(models_da.ToDaMarkup(*markUp))
+	markUpDa := models_da.ToDaMarkup(*markUp)
+	tx := repo.db.Model(models_da.Markup{}).Create(*markUpDa)
 	if tx.Error != nil {
 		return errors.Wrap(tx.Error, "Error in adding anotattion")
 	}

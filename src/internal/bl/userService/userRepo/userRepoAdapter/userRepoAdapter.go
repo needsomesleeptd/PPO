@@ -40,8 +40,8 @@ func (repo *UserRepositoryAdapter) GetUserByLogin(login string) (*models.User, e
 	return &user, nil
 }
 
-func (repo *UserRepositoryAdapter) UpdateUserByLogin(login string) error {
-	var user_da models_da.User
+func (repo *UserRepositoryAdapter) UpdateUserByLogin(login string, user *models.User) error {
+	user_da := models_da.ToDaUser(*user)
 	tx := repo.db.Where("login = ?", login).Updates(user_da)
 	if tx.Error != nil {
 		return errors.Wrap(tx.Error, "Error in updating user")

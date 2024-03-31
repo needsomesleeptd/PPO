@@ -40,7 +40,7 @@ func (hasher JWTTokenHandler) GenerateToken(credentials models.User, key string)
 
 func (hasher JWTTokenHandler) ValidateToken(tokenString string, key string) error {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		return key, nil
+		return []byte(key), nil
 	})
 
 	if err != nil {

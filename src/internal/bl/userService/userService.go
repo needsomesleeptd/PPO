@@ -10,7 +10,7 @@ import (
 var ERROR_CHANGE_ROLE_STR = "Error in changing user role"
 
 type IUserService interface {
-	ChangeUserRoleByLogin(login string) error
+	ChangeUserRoleByLogin(login string, role models.Role) error
 }
 
 type UserService struct {
@@ -27,8 +27,13 @@ func IsRolePermitted(currRole models.Role, reqRole models.Role) bool { //Depends
 	return currRole >= reqRole
 }
 
-func (serv *UserService) ChangeUserRoleByLogin(login string) error { // Для созданяи админа, должна быть маграция бд на старте приложения
-	err := serv.userRepo.UpdateUserByLogin(login)
+func (serv *UserService) ChangeUserRoleByLogin(login string, role models.Role) error { // Для созданяи админа, должна быть маграция бд на старте приложения
+	user, err := serv.userRepo.GetUserByLogin(login)
+	if err != nil {
+		return errors.Wrap(err, "Error in changing user role")
+	}
+	user.Role = role
+	err = serv.userRepo.UpdateUserByLogin(login, user)
 	if err != nil {
 		return errors.Wrap(err, ERROR_CHANGE_ROLE_STR)
 	}
