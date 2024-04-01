@@ -1,8 +1,12 @@
 package integration_tests
 
+//TODO:: split tests by files
+
 import (
-	service "annotater/internal/bl/annotationService"
-	repo_adapter "annotater/internal/bl/annotationService/annotattionRepo/anotattionRepoAdapter"
+	annot_service "annotater/internal/bl/annotationService"
+	annot_repo_adapter "annotater/internal/bl/annotationService/annotattionRepo/anotattionRepoAdapter"
+	service "annotater/internal/bl/anotattionTypeService"
+	repo_adapter "annotater/internal/bl/anotattionTypeService/anottationTypeRepo/anotattionTypeRepoAdapter"
 	auth_service "annotater/internal/bl/auth"
 	document_repo_adapter "annotater/internal/bl/documentService/documentRepo/documentRepoAdapter"
 	user_repo_adapter "annotater/internal/bl/userService/userRepo/userRepoAdapter"
@@ -63,7 +67,8 @@ func (suite *UsecaseRepositoryTestSuite) SetupTest() {
 	// Automatically migrate the schema for each test
 	db.AutoMigrate(&models_da.User{})
 	db.AutoMigrate(&models_da.Document{})
-	//db.AutoMigrate(models_da.Markup{})
+	db.AutoMigrate(&models_da.Markup{})
+	db.AutoMigrate(&models_da.MarkupType{})
 	suite.db = db
 }
 
@@ -71,9 +76,11 @@ func (suite *UsecaseRepositoryTestSuite) TearDownTest() {
 	// Delete the test table after each test
 	suite.db.Migrator().DropTable(&models_da.User{})
 	suite.db.Migrator().DropTable(&models_da.Document{})
-	//suite.db.Migrator().DropTable(&models_da.Markup{})
+	suite.db.Migrator().DropTable(&models_da.Markup{})
+	suite.db.Migrator().DropTable(&models_da.MarkupType{})
 }
 
+//auth tests
 func (suite *UsecaseRepositoryTestSuite) TestUsecaseSignUp() {
 	userRepo := user_repo_adapter.NewUserRepositoryAdapter(suite.db)
 	hasher := auth_utils.NewPasswordHashCrypto()
@@ -91,7 +98,6 @@ func (suite *UsecaseRepositoryTestSuite) TestUsecaseSignUp() {
 		Group:    "test_group",
 	}
 	var gotUser *models.User
-
 	err := userService.SignUp(&user)
 	suite.Require().NoError(err)
 	gotUser, err = userRepo.GetUserByID(id)
@@ -99,6 +105,10 @@ func (suite *UsecaseRepositoryTestSuite) TestUsecaseSignUp() {
 	fmt.Print(user, gotUser)
 	suite.Require().NoError(hasher.ComparePasswordhash(user.Password, gotUser.Password))
 	suite.Require().NoError(err)
+
+	var gotUserDa *models_da.User
+	suite.Require().NoError(suite.db.Model(&models_da.User{}).Where("id = ?", id).Take(&gotUserDa).Error)
+	suite.Assert().Equal(*gotUser, models_da.FromDaUser(gotUserDa))
 }
 
 func (suite *UsecaseRepositoryTestSuite) TestUsecaseSignIn() {
@@ -124,33 +134,10 @@ func (suite *UsecaseRepositoryTestSuite) TestUsecaseSignIn() {
 
 	err = tokenHandler.ValidateToken(token, key)
 	suite.Require().NoError(err)
+
 }
 
-func (suite *UsecaseRepositoryTestSuite) TestUsecase() {
-	userRepo := user_repo_adapter.NewUserRepositoryAdapter(suite.db)
-	hasher := auth_utils.NewPasswordHashCrypto()
-	tokenHandler := auth_utils.NewJWTTokenHandler()
-	key := "key"
-	userService := auth_service.NewAuthService(userRepo, hasher, tokenHandler, key)
-	var id uint64 = 1
-	user := models.User{
-		ID:       id,
-		Login:    "test_user",
-		Password: "test_password",
-		Name:     "Test",
-		Surname:  "User",
-		Role:     models.Admin,
-		Group:    "test_group",
-	}
-	err := userService.SignUp(&user)
-	suite.Require().NoError(err)
-	token, err := userService.SignIn(&user)
-	suite.Require().NoError(err)
-
-	err = tokenHandler.ValidateToken(token, key)
-	suite.Require().NoError(err)
-}
-
+//testing Document Service
 func (suite *UsecaseRepositoryTestSuite) TestUsecaseAddDocument() {
 	var document *models.Document
 	userRepo := document_repo_adapter.NewDocumentRepositoryAdapter(suite.db)
@@ -192,16 +179,83 @@ func (suite *UsecaseRepositoryTestSuite) TestUsecaseDeleteDocumentID() {
 
 }
 
+// Testing adding markUp
 func (suite *UsecaseRepositoryTestSuite) TestUsecaseAddMarkUp() {
-	anotattionRepo := repo_adapter.NewAnotattionRepositoryAdapter(suite.db)
-	anotattionService := service.NewAnnotattionService(anotattionRepo)
+	anotattionRepo := annot_repo_adapter.NewAnotattionRepositoryAdapter(suite.db)
+	anotattionService := annot_service.NewAnnotattionService(anotattionRepo)
 	id := uint64(1)
 	markUp := models.Markup{ID: id, PageData: createPNGBuffer(TEST_VALID_PNG_IMG)}
-	gotMarkUp := models.Markup{ID: id, PageData: createPNGBuffer(TEST_VALID_PNG_IMG)}
-	suite.Require().NoError(suite.db.Model(&gotMarkUp).Where("id = ?", id).Take(&gotMarkUp).Error)
+	gotMarkUp := models_da.Markup{ID: id}
+	suite.Require().Error(suite.db.Model(&models_da.Markup{}).Where("id = ?", id).Take(&gotMarkUp).Error)
 	err := anotattionService.AddAnottation(&markUp)
 	suite.Require().NoError(err)
-	//suite.Assert().NoError(suite.db.Model(&gotMarkUp).Where("id = ?", id).Take(&gotMarkUp).Error)
+	suite.Assert().NoError(suite.db.Model(&models_da.Markup{}).Where("id = ?", id).Take(&gotMarkUp).Error)
+	suite.Assert().Equal(models_da.FromDaMarkup(&gotMarkUp), markUp)
+}
+
+func (suite *UsecaseRepositoryTestSuite) TestUsecaseDeleteMarkUp() {
+	anotattionRepo := annot_repo_adapter.NewAnotattionRepositoryAdapter(suite.db)
+	anotattionService := annot_service.NewAnnotattionService(anotattionRepo)
+	id := uint64(1)
+	markUp := models.Markup{ID: id, PageData: createPNGBuffer(TEST_VALID_PNG_IMG)}
+	gotMarkUp := models_da.Markup{ID: id}
+	err := anotattionService.AddAnottation(&markUp)
+	suite.Require().NoError(err)
+	suite.Require().NoError(suite.db.Model(&models_da.Markup{}).Where("id = ?", id).Take(&gotMarkUp).Error)
+	err = anotattionService.DeleteAnotattion(id)
+	suite.Require().NoError(err)
+	suite.Require().Error(suite.db.Model(&models_da.Markup{}).Where("id = ?", id).Take(&gotMarkUp).Error)
+}
+
+func (suite *UsecaseRepositoryTestSuite) TestUsecaseGetMarkUp() {
+	anotattionRepo := annot_repo_adapter.NewAnotattionRepositoryAdapter(suite.db)
+	anotattionService := annot_service.NewAnnotattionService(anotattionRepo)
+	id := uint64(1)
+	markUpDa := models_da.Markup{ID: id, PageData: createPNGBuffer(TEST_VALID_PNG_IMG)}
+	suite.Require().NoError(suite.db.Create(&markUpDa).Error)
+
+	markUp, err := anotattionService.GetAnottationByID(id)
+	suite.Require().NoError(err)
+	suite.Require().Equal(*markUp, models_da.FromDaMarkup(&markUpDa))
+}
+
+func (suite *UsecaseRepositoryTestSuite) TestUsecaseAddMarkUpType() {
+	anotattionTypeRepo := repo_adapter.NewAnotattionTypeRepositoryAdapter(suite.db)
+	anotattionTypeService := service.NewAnotattionTypeService(anotattionTypeRepo)
+	id := uint64(1)
+	markUpType := models.MarkupType{ID: id}
+	gotMarkUpType := models_da.MarkupType{ID: id}
+	suite.Require().Error(suite.db.Model(&models_da.MarkupType{}).Where("id = ?", id).Take(&gotMarkUpType).Error)
+	err := anotattionTypeService.AddAnottationType(&markUpType)
+	suite.Require().NoError(err)
+	suite.Assert().NoError(suite.db.Model(&models_da.MarkupType{}).Where("id = ?", id).Take(&gotMarkUpType).Error)
+	suite.Assert().Equal(models_da.FromDaMarkupType(&gotMarkUpType), markUpType)
+}
+
+func (suite *UsecaseRepositoryTestSuite) TestUsecaseGetMarkUpType() {
+	anotattionTypeRepo := repo_adapter.NewAnotattionTypeRepositoryAdapter(suite.db)
+	anotattionTypeService := service.NewAnotattionTypeService(anotattionTypeRepo)
+	id := uint64(1)
+	markUpTypeDa := models_da.MarkupType{ID: id, CreatorID: 12}
+	suite.Require().NoError(suite.db.Create(&markUpTypeDa).Error)
+
+	markUpType, err := anotattionTypeService.GetAnottationTypeByID(id)
+	suite.Require().NoError(err)
+	suite.Require().Equal(*markUpType, models_da.FromDaMarkupType(&markUpTypeDa))
+}
+
+func (suite *UsecaseRepositoryTestSuite) TestUsecaseDeleteMarkUpType() {
+	anotattionRepo := repo_adapter.NewAnotattionTypeRepositoryAdapter(suite.db)
+	anotattionService := service.NewAnotattionTypeService(anotattionRepo)
+	id := uint64(1)
+	markUpType := models.MarkupType{ID: id, CreatorID: 12}
+	gotMarkUp := models_da.MarkupType{ID: id}
+	err := anotattionService.AddAnottationType(&markUpType)
+	suite.Require().NoError(err)
+	suite.Require().NoError(suite.db.Model(&models_da.MarkupType{}).Where("id = ?", id).Take(&gotMarkUp).Error)
+	err = anotattionService.DeleteAnotattionType(id)
+	suite.Require().NoError(err)
+	suite.Require().Error(suite.db.Model(&models_da.MarkupType{}).Where("id = ?", id).Take(&gotMarkUp).Error)
 }
 
 func TestSuite(t *testing.T) {

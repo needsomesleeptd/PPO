@@ -21,7 +21,7 @@ func NewAnotattionRepositoryAdapter(srcDB *gorm.DB) repository.IAnotattionReposi
 
 func (repo *AnotattionRepositoryAdapter) AddAnottation(markUp *models.Markup) error {
 	markUpDa := models_da.ToDaMarkup(*markUp)
-	tx := repo.db.Model(models_da.Markup{}).Create(*markUpDa)
+	tx := repo.db.Create(markUpDa)
 	if tx.Error != nil {
 		return errors.Wrap(tx.Error, "Error in adding anotattion")
 	}
@@ -41,7 +41,7 @@ func (repo *AnotattionRepositoryAdapter) DeleteAnotattion(id uint64) error {
 func (repo *AnotattionRepositoryAdapter) GetAnottationByID(id uint64) (*models.Markup, error) {
 	var markUpDA models_da.Markup
 	markUpDA.ID = id
-	tx := repo.db.First(markUpDA)
+	tx := repo.db.First(&markUpDA)
 	if tx.Error != nil {
 		return nil, errors.Wrap(tx.Error, "Error in getting anotattion type")
 	}

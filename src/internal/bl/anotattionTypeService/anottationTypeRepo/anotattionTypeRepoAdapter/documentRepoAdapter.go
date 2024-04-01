@@ -40,7 +40,7 @@ func (repo *AnotattionTypeRepositoryAdapter) DeleteAnotattionType(id uint64) err
 func (repo *AnotattionTypeRepositoryAdapter) GetAnottationTypeByID(id uint64) (*models.MarkupType, error) {
 	var markUpTypeDA models_da.MarkupType
 	markUpTypeDA.ID = id
-	tx := repo.db.First(markUpTypeDA)
+	tx := repo.db.First(&markUpTypeDA)
 	if tx.Error != nil {
 		return nil, errors.Wrap(tx.Error, "Error in getting anotattion type")
 	}

@@ -1,12 +1,34 @@
 package models_da //stands for data_acess
 
-import "annotater/internal/models"
+import (
+	"annotater/internal/models"
+	"database/sql/driver"
+	"encoding/json"
+	"errors"
+)
+
+type BBCoordsSlice []float32 //because gorm cannot store slices directly(((
+
+func (fs *BBCoordsSlice) Scan(value interface{}) error {
+	if value == nil {
+		return nil
+	}
+	bytes, ok := value.([]byte)
+	if !ok {
+		return errors.New("Invalid data type for Bounding boxes")
+	}
+	return json.Unmarshal(bytes, &fs)
+}
+
+func (fs *BBCoordsSlice) Value() (driver.Value, error) {
+	return json.Marshal(fs)
+}
 
 type Markup struct {
-	ID         uint64    `gorm:"primaryKey;column:id"`
-	PageData   []byte    `gorm:"column:page_data"` //png file -- the page data
-	ErrorBB    []float32 `gorm:"column:error_bb`   //Bounding boxes in yolov8 format
-	ClassLabel uint64    `gorm:"column:class_label"`
+	ID         uint64        `gorm:"primaryKey;column:id"`
+	PageData   []byte        `gorm:"column:page_data"`           //png file -- the page data
+	ErrorBB    BBCoordsSlice `gorm:"type:jsonb;column:error_bb"` //Bounding boxes in yolov8 format
+	ClassLabel uint64        `gorm:"column:class_label"`
 }
 
 func FromDaMarkup(markupDa *Markup) models.Markup {
