@@ -20,7 +20,7 @@ func TestUserService_ChangeUserRoleByLogin(t *testing.T) {
 	}
 	type args struct {
 		login string
-		user  *models.User
+		role  models.Role
 	}
 	tests := []struct {
 		name    string
@@ -31,20 +31,31 @@ func TestUserService_ChangeUserRoleByLogin(t *testing.T) {
 		errStr  error
 	}{
 		{
-			name: "Update user no err",
+			name: "Changing tole no err",
 			prepare: func(f *fields) {
-				f.userRepo.EXPECT().UpdateUserByLogin(TEST_VALID_LOGIN).Return(nil)
+				f.userRepo.EXPECT().GetUserByLogin(TEST_VALID_LOGIN).Return(&models.User{Role: models.Admin}, nil)
+				f.userRepo.EXPECT().UpdateUserByLogin(TEST_VALID_LOGIN, &models.User{Role: models.Controller}).Return(nil)
 			},
-			args:    args{login: TEST_VALID_LOGIN, user: &models.User{}},
+			args:    args{login: TEST_VALID_LOGIN, role: models.Controller},
 			wantErr: false,
 			errStr:  nil,
 		},
 		{
-			name: "Update user err",
+			name: "Changing role getting err",
 			prepare: func(f *fields) {
-				f.userRepo.EXPECT().UpdateUserByLogin(TEST_VALID_LOGIN).Return(errors.New(""))
+				f.userRepo.EXPECT().GetUserByLogin(TEST_VALID_LOGIN).Return(nil, errors.New(""))
 			},
-			args:    args{login: TEST_VALID_LOGIN, user: &models.User{}},
+			args:    args{login: TEST_VALID_LOGIN, role: models.Admin},
+			wantErr: true,
+			errStr:  errors.New(service.ERROR_CHANGE_ROLE_STR + ": "),
+		},
+		{
+			name: "Changing role update err",
+			prepare: func(f *fields) {
+				f.userRepo.EXPECT().GetUserByLogin(TEST_VALID_LOGIN).Return(&models.User{Role: models.Sender}, nil)
+				f.userRepo.EXPECT().UpdateUserByLogin(TEST_VALID_LOGIN, &models.User{Role: models.Controller}).Return(errors.New(""))
+			},
+			args:    args{login: TEST_VALID_LOGIN, role: models.Controller},
 			wantErr: true,
 			errStr:  errors.New(service.ERROR_CHANGE_ROLE_STR + ": "),
 		},
@@ -61,7 +72,7 @@ func TestUserService_ChangeUserRoleByLogin(t *testing.T) {
 			}
 
 			s := service.NewUserService(f.userRepo)
-			err := s.ChangeUserRoleByLogin(tt.args.login, tt.args.user)
+			err := s.ChangeUserRoleByLogin(tt.args.login, tt.args.role)
 			if tt.wantErr {
 				require.Equal(t, tt.errStr.Error(), err.Error())
 			} else {

@@ -35,17 +35,17 @@ func (m *MockIAnotattionRepository) EXPECT() *MockIAnotattionRepositoryMockRecor
 }
 
 // AddAnottation mocks base method.
-func (m *MockIAnotattionRepository) AddAnottation(doc *models.Markup) error {
+func (m *MockIAnotattionRepository) AddAnottation(markUp *models.Markup) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddAnottation", doc)
+	ret := m.ctrl.Call(m, "AddAnottation", markUp)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // AddAnottation indicates an expected call of AddAnottation.
-func (mr *MockIAnotattionRepositoryMockRecorder) AddAnottation(doc interface{}) *gomock.Call {
+func (mr *MockIAnotattionRepositoryMockRecorder) AddAnottation(markUp interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddAnottation", reflect.TypeOf((*MockIAnotattionRepository)(nil).AddAnottation), doc)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddAnottation", reflect.TypeOf((*MockIAnotattionRepository)(nil).AddAnottation), markUp)
 }
 
 // DeleteAnotattion mocks base method.
