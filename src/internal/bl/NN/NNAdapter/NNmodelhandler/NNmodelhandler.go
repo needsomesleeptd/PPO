@@ -1,4 +1,4 @@
-package nn_adapter
+package nn_model_handler
 
 import (
 	models_dto "annotater/internal/models/dto"
@@ -6,6 +6,11 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+)
+
+var (
+	ErrMarshallingRequest = errors.New("error in Marshalling NN request")
+	ErrGettingResponse    = errors.New("error in getting NN response")
 )
 
 type IModelHandler interface {

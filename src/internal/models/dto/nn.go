@@ -29,6 +29,9 @@ func ToDtoMarkup(markup models.Markup) *Markup {
 }
 
 func FromDtoMarkupSlice(markupsDto []Markup) []models.Markup {
+	if markupsDto == nil {
+		return nil
+	}
 	markups := make([]models.Markup, len(markupsDto))
 
 	for i := range markupsDto {

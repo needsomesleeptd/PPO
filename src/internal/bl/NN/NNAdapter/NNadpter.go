@@ -1,27 +1,26 @@
 package nn_adapter
 
 import (
+	nn_model_handler "annotater/internal/bl/NN/NNAdapter/NNmodelhandler"
 	"annotater/internal/models"
 	models_dto "annotater/internal/models/dto"
 	"errors"
 )
 
 var (
-	ErrMarshallingRequest = errors.New("error in Marshalling NN request")
-	ErrGettingResponse    = errors.New("error in getting NN response")
-	ErrInModelPrediction  = errors.New("error in getting predictions")
+	ErrInModelPrediction = errors.New("error in getting predictions")
 )
 
 type DetectionModel struct { // NN stands for neural network
-	modelHandler IModelHandler
+	modelHandler nn_model_handler.IModelHandler
 }
 
-func NewDetectionModel(handler IModelHandler) (*DetectionModel, error) {
-	return &DetectionModel{modelHandler: handler}, nil
+func NewDetectionModel(handler nn_model_handler.IModelHandler) *DetectionModel {
+	return &DetectionModel{modelHandler: handler}
 }
 
 func (m *DetectionModel) Predict(document models.Document) ([]models.Markup, error) {
-	req := ModelRequest{DocumentData: document.DocumentData}
+	req := nn_model_handler.ModelRequest{DocumentData: document.DocumentData}
 	markupsDto, err := m.modelHandler.GetModelResp(req)
 	if err != nil {
 		return nil, errors.Join(ErrInModelPrediction, err)

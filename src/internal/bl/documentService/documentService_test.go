@@ -108,7 +108,7 @@ func TestDocumentService_CheckDocument(t *testing.T) {
 		name    string
 		fields  fields
 		args    args
-		want    []*models.Markup
+		want    []models.Markup
 		wantErr bool
 		prepare func(f *fields)
 		errStr  error
@@ -117,7 +117,7 @@ func TestDocumentService_CheckDocument(t *testing.T) {
 			name: "Valid Check one markup",
 			prepare: func(f *fields) {
 				f.neuralNetwork.EXPECT().Predict(models.Document{
-					DocumentData: createPDFBuffer(TEST_VALID_PDF)}).Return([]*models.Markup{
+					DocumentData: createPDFBuffer(TEST_VALID_PDF)}).Return([]models.Markup{
 					{ErrorBB: []float32{0.4, 0.3, 0.2},
 						ClassLabel: 1,
 					},
@@ -127,7 +127,7 @@ func TestDocumentService_CheckDocument(t *testing.T) {
 				DocumentData: createPDFBuffer(TEST_VALID_PDF)}},
 			wantErr: false,
 			errStr:  nil,
-			want: []*models.Markup{
+			want: []models.Markup{
 				{ErrorBB: []float32{0.4, 0.3, 0.2},
 					ClassLabel: 1,
 				},
@@ -159,7 +159,7 @@ func TestDocumentService_CheckDocument(t *testing.T) {
 		{
 			name: "Valid check numerous markups",
 			prepare: func(f *fields) {
-				f.neuralNetwork.EXPECT().Predict(models.Document{DocumentData: createPDFBuffer(TEST_VALID_PDF)}).Return([]*models.Markup{
+				f.neuralNetwork.EXPECT().Predict(models.Document{DocumentData: createPDFBuffer(TEST_VALID_PDF)}).Return([]models.Markup{
 					{ErrorBB: []float32{0.4, 0.3, 0.2},
 						ClassLabel: 1,
 					},
@@ -171,7 +171,7 @@ func TestDocumentService_CheckDocument(t *testing.T) {
 			args:    args{document: models.Document{DocumentData: createPDFBuffer(TEST_VALID_PDF)}},
 			wantErr: false,
 			errStr:  nil,
-			want: []*models.Markup{
+			want: []models.Markup{
 				{ErrorBB: []float32{0.4, 0.3, 0.2},
 					ClassLabel: 1,
 				},
