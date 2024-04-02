@@ -7,8 +7,9 @@ import (
 	"annotater/internal/models"
 	"testing"
 
+	"errors"
+
 	"github.com/golang/mock/gomock"
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 )
 
@@ -67,14 +68,14 @@ func TestAuthService_Auth(t *testing.T) {
 			args:    args{models.User{Password: TEST_VALID_PASSWORD}},
 			want:    models.User{},
 			wantErr: true,
-			errStr:  service.NO_LOGIN_ERR,
+			errStr:  service.ErrNoLogin,
 		},
 		{
 			name:    "No Passwd",
 			args:    args{models.User{Login: TEST_VALID_LOGIN}},
 			want:    models.User{},
 			wantErr: true,
-			errStr:  service.NO_PASSWD_ERR,
+			errStr:  service.ErrNoPasswd,
 		},
 		{
 			name: "Hash error",
@@ -85,7 +86,7 @@ func TestAuthService_Auth(t *testing.T) {
 			args:    args{VALID_USER},
 			want:    models.User{},
 			wantErr: true,
-			errStr:  errors.Wrap(errors.New(""), service.GENERATING_HASH_ERR.Error()),
+			errStr:  errors.Join(service.ErrGeneratingHash, errors.New("")),
 		},
 		{
 			name: "CreateUser error",
@@ -96,7 +97,7 @@ func TestAuthService_Auth(t *testing.T) {
 			args:    args{VALID_USER},
 			want:    models.User{},
 			wantErr: true,
-			errStr:  errors.Wrap(errors.New(""), service.CREATING_USER_ERR.Error()),
+			errStr:  errors.Join(service.ErrCreatingUser, errors.New("")),
 		},
 	}
 	for _, tt := range tests {
@@ -162,14 +163,14 @@ func TestAuthService_SignIn(t *testing.T) {
 			args:    args{models.User{Password: TEST_VALID_PASSWORD}},
 			want:    "",
 			wantErr: true,
-			errStr:  service.NO_LOGIN_ERR,
+			errStr:  service.ErrNoLogin,
 		},
 		{
 			name:    "No Passwd",
 			args:    args{models.User{Login: TEST_VALID_LOGIN}},
 			want:    "",
 			wantErr: true,
-			errStr:  service.NO_PASSWD_ERR,
+			errStr:  service.ErrNoPasswd,
 		},
 		{
 			name: "GetUser Error",
@@ -180,7 +181,7 @@ func TestAuthService_SignIn(t *testing.T) {
 			},
 			want:    "",
 			wantErr: true,
-			errStr:  errors.Wrap(errors.New(""), service.GETTING_USER_DATA_ERR.Error()),
+			errStr:  errors.Join(service.ErrLoginOccupied, errors.New("")),
 		},
 		{
 			name: "CmpHash Error",
@@ -191,7 +192,7 @@ func TestAuthService_SignIn(t *testing.T) {
 			},
 			want:    "",
 			wantErr: true,
-			errStr:  errors.Wrap(errors.New(""), service.CMP_PASSED_HASH_ERR.Error()),
+			errStr:  errors.Join(service.ErrHashPasswdMatch, errors.New("")),
 		},
 		{
 			name: "Token generation Error",
@@ -203,7 +204,7 @@ func TestAuthService_SignIn(t *testing.T) {
 			},
 			want:    "",
 			wantErr: true,
-			errStr:  errors.Wrap(errors.New(""), service.GENERATING_TOKEN_ERR.Error()),
+			errStr:  errors.Join(service.ErrGeneratingToken, errors.New("")),
 		},
 	}
 	for _, tt := range tests {
