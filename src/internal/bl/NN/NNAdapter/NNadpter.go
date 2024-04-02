@@ -1,0 +1,32 @@
+package nn_adapter
+
+import (
+	nn_model_handler "annotater/internal/bl/NN/NNAdapter/NNmodelhandler"
+	"annotater/internal/models"
+	models_dto "annotater/internal/models/dto"
+	"errors"
+)
+
+var (
+	ErrInModelPrediction = errors.New("error in getting predictions")
+)
+
+type DetectionModel struct { // NN stands for neural network
+	modelHandler nn_model_handler.IModelHandler
+}
+
+func NewDetectionModel(handler nn_model_handler.IModelHandler) *DetectionModel {
+	return &DetectionModel{modelHandler: handler}
+}
+
+func (m *DetectionModel) Predict(document models.Document) ([]models.Markup, error) {
+	req := nn_model_handler.ModelRequest{DocumentData: document.DocumentData}
+	markupsDto, err := m.modelHandler.GetModelResp(req)
+	if err != nil {
+		return nil, errors.Join(ErrInModelPrediction, err)
+	}
+	markups := models_dto.FromDtoMarkupSlice(markupsDto)
+
+	return markups, nil
+
+}

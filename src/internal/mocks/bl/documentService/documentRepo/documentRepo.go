@@ -49,30 +49,30 @@ func (mr *MockIDocumentRepositoryMockRecorder) AddDocument(doc interface{}) *gom
 }
 
 // DeleteDocumentByID mocks base method.
-func (m *MockIDocumentRepository) DeleteDocumentByID(arg0 uint64) error {
+func (m *MockIDocumentRepository) DeleteDocumentByID(id uint64) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteDocumentByID", arg0)
+	ret := m.ctrl.Call(m, "DeleteDocumentByID", id)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeleteDocumentByID indicates an expected call of DeleteDocumentByID.
-func (mr *MockIDocumentRepositoryMockRecorder) DeleteDocumentByID(arg0 interface{}) *gomock.Call {
+func (mr *MockIDocumentRepositoryMockRecorder) DeleteDocumentByID(id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteDocumentByID", reflect.TypeOf((*MockIDocumentRepository)(nil).DeleteDocumentByID), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteDocumentByID", reflect.TypeOf((*MockIDocumentRepository)(nil).DeleteDocumentByID), id)
 }
 
 // GetDocumentByID mocks base method.
-func (m *MockIDocumentRepository) GetDocumentByID(doc *models.Document) (*models.Document, error) {
+func (m *MockIDocumentRepository) GetDocumentByID(id uint64) (*models.Document, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetDocumentByID", doc)
+	ret := m.ctrl.Call(m, "GetDocumentByID", id)
 	ret0, _ := ret[0].(*models.Document)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetDocumentByID indicates an expected call of GetDocumentByID.
-func (mr *MockIDocumentRepositoryMockRecorder) GetDocumentByID(doc interface{}) *gomock.Call {
+func (mr *MockIDocumentRepositoryMockRecorder) GetDocumentByID(id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDocumentByID", reflect.TypeOf((*MockIDocumentRepository)(nil).GetDocumentByID), doc)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDocumentByID", reflect.TypeOf((*MockIDocumentRepository)(nil).GetDocumentByID), id)
 }

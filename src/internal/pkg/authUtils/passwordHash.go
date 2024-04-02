@@ -26,7 +26,7 @@ func (hasher PasswordCryptoHasher) GenerateHash(password string) (string, error)
 }
 
 func (hasher PasswordCryptoHasher) ComparePasswordhash(password string, hash string) error {
-	err := bcrypt.CompareHashAndPassword([]byte(password), []byte(hash))
+	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 	if err != nil {
 		return errors.Wrap(err, "Error in comparing hash and passwd")
 	}

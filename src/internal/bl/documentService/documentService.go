@@ -18,7 +18,7 @@ const (
 
 type IDocumentService interface {
 	LoadDocument(document models.Document) error
-	CheckDocument(document models.Document) ([]*models.Markup, error)
+	CheckDocument(document models.Document) ([]models.Markup, error)
 }
 
 type DocumentService struct {
@@ -45,7 +45,7 @@ func (serv *DocumentService) LoadDocument(document models.Document) error {
 	return err
 }
 
-func (serv *DocumentService) CheckDocument(document models.Document) ([]*models.Markup, error) {
+func (serv *DocumentService) CheckDocument(document models.Document) ([]models.Markup, error) {
 
 	isValid := filesig.IsPdf(bytes.NewReader(document.DocumentData))
 	if !isValid {

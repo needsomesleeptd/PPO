@@ -93,15 +93,15 @@ func (mr *MockIUserRepositoryMockRecorder) GetUserByLogin(login interface{}) *go
 }
 
 // UpdateUserByLogin mocks base method.
-func (m *MockIUserRepository) UpdateUserByLogin(login string) error {
+func (m *MockIUserRepository) UpdateUserByLogin(login string, user *models.User) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateUserByLogin", login)
+	ret := m.ctrl.Call(m, "UpdateUserByLogin", login, user)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // UpdateUserByLogin indicates an expected call of UpdateUserByLogin.
-func (mr *MockIUserRepositoryMockRecorder) UpdateUserByLogin(login interface{}) *gomock.Call {
+func (mr *MockIUserRepositoryMockRecorder) UpdateUserByLogin(login, user interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserByLogin", reflect.TypeOf((*MockIUserRepository)(nil).UpdateUserByLogin), login)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserByLogin", reflect.TypeOf((*MockIUserRepository)(nil).UpdateUserByLogin), login, user)
 }

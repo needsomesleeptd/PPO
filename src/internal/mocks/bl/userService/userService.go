@@ -5,6 +5,7 @@
 package mock_service
 
 import (
+	models "annotater/internal/models"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
@@ -34,15 +35,15 @@ func (m *MockIUserService) EXPECT() *MockIUserServiceMockRecorder {
 }
 
 // ChangeUserRoleByLogin mocks base method.
-func (m *MockIUserService) ChangeUserRoleByLogin(login string) error {
+func (m *MockIUserService) ChangeUserRoleByLogin(login string, role models.Role) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ChangeUserRoleByLogin", login)
+	ret := m.ctrl.Call(m, "ChangeUserRoleByLogin", login, role)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // ChangeUserRoleByLogin indicates an expected call of ChangeUserRoleByLogin.
-func (mr *MockIUserServiceMockRecorder) ChangeUserRoleByLogin(login interface{}) *gomock.Call {
+func (mr *MockIUserServiceMockRecorder) ChangeUserRoleByLogin(login, role interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChangeUserRoleByLogin", reflect.TypeOf((*MockIUserService)(nil).ChangeUserRoleByLogin), login)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChangeUserRoleByLogin", reflect.TypeOf((*MockIUserService)(nil).ChangeUserRoleByLogin), login, role)
 }
