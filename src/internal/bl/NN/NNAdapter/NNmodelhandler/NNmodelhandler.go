@@ -20,6 +20,11 @@ type IModelHandler interface {
 type HttpModelHandler struct {
 	Url string
 }
+
+func NewHttpModelHandler(url string) IModelHandler {
+	return &HttpModelHandler{Url: url}
+}
+
 type ModelRequest struct {
 	DocumentData []byte `json:"document_data"`
 }
