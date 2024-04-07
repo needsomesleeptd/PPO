@@ -11,19 +11,31 @@ import matplotlib.pyplot as plt
 
 
 app = Flask(__name__)
+<<<<<<< HEAD
 app.config['DEBUG'] = True
+=======
+
+>>>>>>> 18df60c (It is ALIVE)
 model = None
 
 @app.route("/pred", methods=["POST", "GET"])
 def image_post_request():
     file = request.files['document_data']
+<<<<<<< HEAD
     print(file)
+=======
+    #print(file)
+>>>>>>> 18df60c (It is ALIVE)
     pdf_bytes = file.read()
     #print(pdf_bytes)
     pdf_document = fitz.open(stream = pdf_bytes, filetype="pdf")
     page_count = pdf_document.page_count
     annots = []
+<<<<<<< HEAD
     print('got request, starting to processs..,page_count {page_count}')
+=======
+    print('got request, starting to processs..')
+>>>>>>> 18df60c (It is ALIVE)
     for i in range(page_count):
         print(f'starting handling page:{i}')
         png_img,byte_img = extract_page_by_num(pdf_document,i)
