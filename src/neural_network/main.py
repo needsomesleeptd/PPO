@@ -11,13 +11,13 @@ import matplotlib.pyplot as plt
 
 
 app = Flask(__name__)
-
+app.config['DEBUG'] = True
 model = None
 
 @app.route("/pred", methods=["POST", "GET"])
 def image_post_request():
     file = request.files['document_data']
-    #print(file)
+    print(file)
     pdf_bytes = file.read()
     #print(pdf_bytes)
     pdf_document = fitz.open(stream = pdf_bytes, filetype="pdf")

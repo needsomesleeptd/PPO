@@ -16,7 +16,7 @@ var (
 	ErrCreatingRequest    = errors.New("error in creating request")
 
 	PdfFieldName = "document_data"
-	PdfFileName  = "request_file"
+	PdfFileName  = "request_file.pdf"
 )
 
 type IModelHandler interface {
@@ -44,6 +44,7 @@ func (h *HttpModelHandler) GetModelResp(req ModelRequest) ([]models_dto.Markup, 
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 	part, err := writer.CreateFormFile(PdfFieldName, PdfFileName)
+
 	if err != nil {
 		return nil, errors.Join(ErrCreatingFormData, err)
 	}
@@ -52,7 +53,8 @@ func (h *HttpModelHandler) GetModelResp(req ModelRequest) ([]models_dto.Markup, 
 	if err != nil {
 		return nil, errors.Join(ErrCreatingFormData, err)
 	}
-	reqModel, err := http.NewRequest("POST", "application/json", body)
+	writer.Close()
+	reqModel, err := http.NewRequest("POST", h.Url, body)
 
 	if err != nil {
 		return nil, errors.Join(ErrCreatingFormData, err)
