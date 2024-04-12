@@ -3,10 +3,12 @@ package models_dto // stands for data_transfer_objec
 import (
 	"annotater/internal/models"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type Document struct {
-	ID           uint64    `json:"id"`
+	ID           uuid.UUID `json:"id"`
 	PageCount    int       `json:"page_count"`
 	DocumentData []byte    `json:"document_data"` //pdf file -- the whole file
 	ChecksCount  int       `json:"checks_count"`

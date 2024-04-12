@@ -5,6 +5,7 @@ import (
 	"annotater/internal/models"
 	models_da "annotater/internal/models/modelsDA"
 
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
 )
@@ -28,7 +29,7 @@ func (repo *DocumentRepositoryAdapter) AddDocument(doc *models.Document) error {
 	return nil
 }
 
-func (repo *DocumentRepositoryAdapter) GetDocumentByID(id uint64) (*models.Document, error) {
+func (repo *DocumentRepositoryAdapter) GetDocumentByID(id uuid.UUID) (*models.Document, error) {
 	var documentDa models_da.Document
 	documentDa.ID = id
 	tx := repo.db.First(&documentDa)
@@ -39,7 +40,7 @@ func (repo *DocumentRepositoryAdapter) GetDocumentByID(id uint64) (*models.Docum
 	return &document, nil
 }
 
-func (repo *DocumentRepositoryAdapter) DeleteDocumentByID(id uint64) error {
+func (repo *DocumentRepositoryAdapter) DeleteDocumentByID(id uuid.UUID) error {
 	tx := repo.db.Delete(models.Document{}, id) // specifically for gorm
 	if tx.Error != nil {
 		return errors.Wrap(tx.Error, "Error in deleting document")

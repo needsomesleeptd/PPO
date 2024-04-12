@@ -7,6 +7,7 @@ require (
 	github.com/go-chi/render v1.0.3
 	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/golang/mock v1.6.0
+	github.com/google/uuid v1.6.0
 	github.com/pkg/errors v0.9.1
 	github.com/signintech/gopdf v0.23.1
 	github.com/stretchr/testify v1.9.0

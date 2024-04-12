@@ -3,10 +3,12 @@ package models_da //stands for data_acess
 import (
 	"annotater/internal/models"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type Document struct {
-	ID           uint64    `gorm:"primaryKey;column:id"`
+	ID           uuid.UUID `gorm:"primaryKey;column:id"`
 	PageCount    int       `gorm:"column:page_count"`
 	DocumentData []byte    `gorm:"column:document_data"`
 	ChecksCount  int       `gorm:"column:checks_count"`

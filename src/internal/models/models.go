@@ -2,10 +2,12 @@ package models
 
 import (
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type Document struct {
-	ID           uint64
+	ID           uuid.UUID
 	PageCount    int
 	DocumentData []byte //pdf file -- the whole file
 	ChecksCount  int

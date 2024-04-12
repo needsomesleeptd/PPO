@@ -14,6 +14,7 @@ import (
 type Payload struct {
 	Login string
 	ID    uint64
+	Role  models.Role
 }
 
 type ITokenHandler interface {
@@ -41,6 +42,7 @@ func (hasher JWTTokenHandler) GenerateToken(credentials models.User, key string)
 			"exprires": time.Now().Add(time.Hour * 24),
 			"login":    credentials.Login,
 			"ID":       credentials.ID,
+			"Role":     credentials.Role,
 		})
 	tokenString, err := token.SignedString([]byte(key))
 	if err != nil {
@@ -78,6 +80,7 @@ func (hasher JWTTokenHandler) ParseToken(tokenString string, key string) (*Paylo
 	payload := &Payload{
 		Login: claims["login"].(string),
 		ID:    uint64(claims["ID"].(float64)),
+		Role:  models.Role(claims["Role"].(float64)),
 	}
 
 	return payload, nil
