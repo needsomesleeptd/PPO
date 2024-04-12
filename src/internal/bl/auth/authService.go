@@ -18,6 +18,8 @@ var (
 	ErrHashPasswdMatch = errors.New("Error in comparing hash and passwd")
 )
 
+const SECRET = "secret"
+
 type IAuthService interface {
 	SignIn(candidate *models.User) (tokenStr string, err error)
 	SignUp(candidate *models.User) error

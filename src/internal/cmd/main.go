@@ -1,7 +1,19 @@
 package main
 
 import (
-	models_da "annotater/internal/models/modelsDA"
+	nn_adapter "annotater/internal/bl/NN/NNAdapter"
+	nn_model_handler "annotater/internal/bl/NN/NNAdapter/NNmodelhandler"
+	annot_service "annotater/internal/bl/annotationService"
+	annot_repo_adapter "annotater/internal/bl/annotationService/annotattionRepo/anotattionRepoAdapter"
+	annot_type_service "annotater/internal/bl/anotattionTypeService"
+	annot_type_repo_adapter "annotater/internal/bl/anotattionTypeService/anottationTypeRepo/anotattionTypeRepoAdapter"
+	auth_service "annotater/internal/bl/auth"
+	service "annotater/internal/bl/documentService"
+	repo_adapter "annotater/internal/bl/documentService/documentRepo/documentRepoAdapter"
+	user_repo_adapter "annotater/internal/bl/userService/userRepo/userRepoAdapter"
+	document_handler "annotater/internal/http-server/handlers/document"
+	"annotater/internal/middleware/auth_middleware"
+	auth_utils "annotater/internal/pkg/authUtils"
 	"fmt"
 	"net/http"
 	"os"
@@ -15,37 +27,42 @@ import (
 )
 
 var (
-	CONN_POSTGRES_STR = "host=localhost user=any1 password=1 database=meetmatch_db port=5432" //TODO:: export through parameters
+	CONN_POSTGRES_STR = "host=localhost user=andrew password=1 database=lab01db port=5432" //TODO:: export through parameters
 	POSTGRES_CFG      = postgres.Config{DSN: CONN_POSTGRES_STR}
-	MODEL_ROUTE       = "http://0.0.0.0:5000/rec"
-	SESSION_PATH      = "localhost:6379"
+	MODEL_ROUTE       = "http://0.0.0.0:5000/pred"
 )
 
 func main() {
-	model, err := model.New(MODEL_ROUTE)
-	if err != nil {
-		fmt.Println("Error with model")
-		os.Exit(1)
-	}
-	var sessionManager *sessions.SessionManager
-	sessionManager, err = sessions.NewSessionManager(SESSION_PATH, "", 0)
-	if err != nil {
-		fmt.Println(err.Error())
-		os.Exit(1)
-	}
 	db, err := gorm.Open(postgres.New(POSTGRES_CFG), &gorm.Config{})
-	db.AutoMigrate(models_da.User{}) //TODO:: this is a hack, fix this
+
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
-	// TODO : add config
 
 	//auth service
-	userRepo := repo_adapter.NewUserRepositoryAdapter(db)
+	userRepo := user_repo_adapter.NewUserRepositoryAdapter(db)
 	hasher := auth_utils.NewPasswordHashCrypto()
 	tokenHandler := auth_utils.NewJWTTokenHandler()
 	userService := auth_service.NewAuthService(userRepo, hasher, tokenHandler, auth_service.SECRET)
+
+	//annot service
+	annotRepo := annot_repo_adapter.NewAnotattionRepositoryAdapter(db)
+	annotService := annot_service.NewAnnotattionService(annotRepo)
+
+	//annotType service
+	annotTypeRepo := annot_type_repo_adapter.NewAnotattionTypeRepositoryAdapter(db)
+	annotTypeService := annot_type_service.NewAnotattionTypeService(annotTypeRepo)
+
+	//document service
+	//setting up NN
+	modelhandler := nn_model_handler.NewHttpModelHandler(MODEL_ROUTE)
+	model := nn_adapter.NewDetectionModel(modelhandler)
+
+	documentRepo := repo_adapter.NewDocumentRepositoryAdapter(db)
+	documentService := service.NewDocumentService(documentRepo, model)
+
+	//auth service
 	router := chi.NewRouter()
 
 	authMiddleware := (func(h http.Handler) http.Handler {
@@ -53,8 +70,8 @@ func main() {
 	})
 	router.Group(func(r chi.Router) { //group for which auth middleware is required
 		r.Use(authMiddleware)
-		r.Get("/cards", cards.New(model))
-		r.Post("/sessions", sessions_handler.SessionCreatePage(sessionManager))
+		r.Get("/document/load", document_handler.LoadDocument(documentService))
+		//r.Post("/document/check", document_handler.Cg)
 		r.Post("/sessions/{id}", sessions_handler.SessionGetData(sessionManager))
 		r.Patch("/sessions/{id}", sessions_handler.SessionAdduser(sessionManager))
 		r.Put("/sessions/{id}", sessions_handler.SessionModifyuser(sessionManager))
