@@ -10,10 +10,11 @@ import (
 )
 
 var (
-	ErrMarshallingRequest = errors.New("error in Marshalling NN request")
-	ErrGettingResponse    = errors.New("error in getting NN response")
-	ErrCreatingFormData   = errors.New("error in creating Form Data")
-	ErrCreatingRequest    = errors.New("error in creating request")
+	ErrMarshallingRequest    = errors.New("error in Marshalling NN request")
+	ErrUnMarshallingResponse = errors.New("error in Unmarshalling NN request")
+	ErrGettingResponse       = errors.New("error in getting NN response")
+	ErrCreatingFormData      = errors.New("error in creating Form Data")
+	ErrCreatingRequest       = errors.New("error in creating request")
 
 	PdfFieldName = "document_data"
 	PdfFileName  = "request_file.pdf"
@@ -61,13 +62,16 @@ func (h *HttpModelHandler) GetModelResp(req ModelRequest) ([]models_dto.Markup, 
 	}
 	reqModel.Header.Set("Content-Type", writer.FormDataContentType())
 
-	client := &http.Client{} // TODO:: pass the client from outside
-	jsonResp, err := client.Do(reqModel)
+	jsonResp, err := http.DefaultClient.Do(reqModel)
 	if err != nil {
 		return nil, errors.Join(ErrGettingResponse, err)
 	}
 
 	var markupsDto []models_dto.Markup
-	json.NewDecoder(jsonResp.Body).Decode(&markupsDto)
+
+	err = json.NewDecoder(jsonResp.Body).Decode(&markupsDto)
+	if err != nil {
+		return nil, errors.Join(ErrUnMarshallingResponse, err)
+	}
 	return markupsDto, nil
 }

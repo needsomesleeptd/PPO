@@ -1,6 +1,8 @@
 package models_dto
 
-import "annotater/internal/models"
+import (
+	"annotater/internal/models"
+)
 
 type Markup struct {
 	ID         uint64    `json:"id"`
@@ -10,6 +12,7 @@ type Markup struct {
 }
 
 func FromDtoMarkup(markup *Markup) models.Markup {
+
 	return models.Markup{
 		ID:         markup.ID,
 		ClassLabel: markup.ClassLabel,
@@ -33,7 +36,6 @@ func FromDtoMarkupSlice(markupsDto []Markup) []models.Markup {
 		return nil
 	}
 	markups := make([]models.Markup, len(markupsDto))
-
 	for i := range markupsDto {
 		markups[i] = FromDtoMarkup(&markupsDto[i])
 	}

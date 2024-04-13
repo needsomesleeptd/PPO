@@ -35,10 +35,11 @@ def image_post_request():
         return jsonify({})
     annot_json_dict = [annot.to_json_dict() for annot in annots]
     res_json = jsonify(annot_json_dict)
+    print(annot_json_dict)
     return res_json 
 
 
 if __name__ == "__main__":
-    yolo_model=YOLO('./best.pt')
+    yolo_model=YOLO('./best.pt').to('cuda')
     model = yolo_model
     app.run(host="0.0.0.0", port=5000)
