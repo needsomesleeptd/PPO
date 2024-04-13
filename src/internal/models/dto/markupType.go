@@ -1,12 +1,12 @@
-package models_da //stands for data_acess
+package models_dto //stands for data_acess
 
 import "annotater/internal/models"
 
 type MarkupType struct {
-	ID          uint64 `gorm:"primaryKey;column:id"`
-	Description string `gorm:"column:description"`
-	CreatorID   int    `gorm:"column:creator_id"`
-	ClassName   string `gorm:"column:class_name"`
+	ID          uint64 `json:"id"`
+	Description string `json:"description"`
+	CreatorID   int    `json:"creator_id"`
+	ClassName   string `json:"class_name"`
 }
 
 func FromDaMarkupType(markupTypeDa *MarkupType) models.MarkupType {
@@ -18,7 +18,6 @@ func FromDaMarkupType(markupTypeDa *MarkupType) models.MarkupType {
 	}
 }
 
-// ToDaMarkupType converts a markup MarkupType to a data access MarkupType
 func ToDaMarkupType(markupType models.MarkupType) *MarkupType {
 	return &MarkupType{
 		ID:          markupType.ID,

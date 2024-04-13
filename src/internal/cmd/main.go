@@ -3,10 +3,13 @@ package main
 import (
 	nn_adapter "annotater/internal/bl/NN/NNAdapter"
 	nn_model_handler "annotater/internal/bl/NN/NNAdapter/NNmodelhandler"
+	annot_type_service "annotater/internal/bl/anotattionTypeService"
+	annot_type_repo_adapter "annotater/internal/bl/anotattionTypeService/anottationTypeRepo/anotattionTypeRepoAdapter"
 	auth_service "annotater/internal/bl/auth"
-	service "annotater/internal/bl/documentService"
-	repo_adapter "annotater/internal/bl/documentService/documentRepo/documentRepoAdapter"
+	document_service "annotater/internal/bl/documentService"
+	document_repo_adapter "annotater/internal/bl/documentService/documentRepo/documentRepoAdapter"
 	user_repo_adapter "annotater/internal/bl/userService/userRepo/userRepoAdapter"
+	annot_type_handler "annotater/internal/http-server/handlers/annotType"
 	auth_handler "annotater/internal/http-server/handlers/auth"
 	document_handler "annotater/internal/http-server/handlers/document"
 	"annotater/internal/middleware/auth_middleware"
@@ -34,6 +37,7 @@ func main() {
 	db, err := gorm.Open(postgres.New(POSTGRES_CFG), &gorm.Config{})
 	db.AutoMigrate(&models_da.Document{})
 	db.AutoMigrate(&models_da.User{})
+	db.AutoMigrate(&models_da.MarkupType{})
 
 	if err != nil {
 		fmt.Println(err.Error())
@@ -51,16 +55,16 @@ func main() {
 	annotService := annot_service.NewAnnotattionService(annotRepo)*/
 
 	//annotType service
-	/*annotTypeRepo := annot_type_repo_adapter.NewAnotattionTypeRepositoryAdapter(db)
-	annotTypeService := annot_type_service.NewAnotattionTypeService(annotTypeRepo)*/
+	annotTypeRepo := annot_type_repo_adapter.NewAnotattionTypeRepositoryAdapter(db)
+	annotTypeService := annot_type_service.NewAnotattionTypeService(annotTypeRepo)
 
 	//document service
 	//setting up NN
 	modelhandler := nn_model_handler.NewHttpModelHandler(MODEL_ROUTE)
 	model := nn_adapter.NewDetectionModel(modelhandler)
 
-	documentRepo := repo_adapter.NewDocumentRepositoryAdapter(db)
-	documentService := service.NewDocumentService(documentRepo, model)
+	documentRepo := document_repo_adapter.NewDocumentRepositoryAdapter(db)
+	documentService := document_service.NewDocumentService(documentRepo, model)
 
 	//auth service
 	router := chi.NewRouter()
@@ -70,9 +74,14 @@ func main() {
 	})
 	router.Group(func(r chi.Router) { //group for which auth middleware is required
 		r.Use(authMiddleware)
+		//document
 		r.Post("/document/load", document_handler.LoadDocument(documentService))
 		r.Get("/document/check", document_handler.CheckDocument(documentService))
-
+		//annotType
+		r.Post("/annotType/add", annot_type_handler.AddAnnotType(annotTypeService))
+		r.Get("/annotType/get", annot_type_handler.GetAnnotType(annotTypeService))
+		r.Delete("/annotType/delete", annot_type_handler.DeleteAnnotType(annotTypeService))
+		//
 	})
 
 	//auth

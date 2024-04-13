@@ -44,6 +44,7 @@ type MarkupType struct {
 	Description string
 	CreatorID   int
 	ID          uint64
+	ClassName   string
 }
 
 type Token struct {
