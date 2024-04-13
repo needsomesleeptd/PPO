@@ -52,6 +52,7 @@ func (serv *DocumentService) CheckDocument(document models.Document) ([]models.M
 		return nil, errors.New(DOCUMENT_FORMAT_ERR_STR)
 	}
 	markups, err := serv.neuralNetwork.Predict(document)
+
 	if err != nil {
 		return markups, errors.Wrap(err, CHECKING_DOCUMENT_ERR_STR)
 	}

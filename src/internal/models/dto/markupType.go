@@ -9,7 +9,7 @@ type MarkupType struct {
 	ClassName   string `json:"class_name"`
 }
 
-func FromDaMarkupType(markupTypeDa *MarkupType) models.MarkupType {
+func FromDtoMarkupType(markupTypeDa *MarkupType) models.MarkupType {
 	return models.MarkupType{
 		ID:          markupTypeDa.ID,
 		Description: markupTypeDa.Description,
@@ -18,7 +18,7 @@ func FromDaMarkupType(markupTypeDa *MarkupType) models.MarkupType {
 	}
 }
 
-func ToDaMarkupType(markupType models.MarkupType) *MarkupType {
+func ToDtoMarkupType(markupType models.MarkupType) *MarkupType {
 	return &MarkupType{
 		ID:          markupType.ID,
 		Description: markupType.Description,

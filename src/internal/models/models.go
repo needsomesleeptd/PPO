@@ -20,6 +20,7 @@ type Markup struct {
 	PageData   []byte    //png file -- the page data
 	ErrorBB    []float32 //Bounding boxes in yolov8 format
 	ClassLabel uint64
+	CreatorID  uint64
 }
 
 type Role int

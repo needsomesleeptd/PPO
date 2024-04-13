@@ -26,9 +26,10 @@ func (fs *BBCoordsSlice) Value() (driver.Value, error) {
 
 type Markup struct {
 	ID         uint64        `gorm:"primaryKey;column:id"`
-	PageData   []byte        `gorm:"column:page_data"`           //png file -- the page data
-	ErrorBB    BBCoordsSlice `gorm:"type:jsonb;column:error_bb"` //Bounding boxes in yolov8 format
+	PageData   []byte        `gorm:"column:page_data"`            //png file -- the page data
+	ErrorBB    BBCoordsSlice `gorm:"type:record;column:error_bb"` //Bounding boxes in yolov8 format
 	ClassLabel uint64        `gorm:"column:class_label"`
+	CreatorID  uint64        `gorm:"column:creator_id"`
 }
 
 func FromDaMarkup(markupDa *Markup) models.Markup {
@@ -37,6 +38,7 @@ func FromDaMarkup(markupDa *Markup) models.Markup {
 		PageData:   markupDa.PageData,
 		ErrorBB:    markupDa.ErrorBB,
 		ClassLabel: markupDa.ClassLabel,
+		CreatorID:  markupDa.CreatorID,
 	}
 }
 
@@ -47,5 +49,6 @@ func ToDaMarkup(markup models.Markup) *Markup {
 		PageData:   markup.PageData,
 		ErrorBB:    markup.ErrorBB,
 		ClassLabel: markup.ClassLabel,
+		CreatorID:  markup.CreatorID,
 	}
 }

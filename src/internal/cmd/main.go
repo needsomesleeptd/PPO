@@ -3,12 +3,15 @@ package main
 import (
 	nn_adapter "annotater/internal/bl/NN/NNAdapter"
 	nn_model_handler "annotater/internal/bl/NN/NNAdapter/NNmodelhandler"
+	annot_service "annotater/internal/bl/annotationService"
+	annot_repo_adapter "annotater/internal/bl/annotationService/annotattionRepo/anotattionRepoAdapter"
 	annot_type_service "annotater/internal/bl/anotattionTypeService"
 	annot_type_repo_adapter "annotater/internal/bl/anotattionTypeService/anottationTypeRepo/anotattionTypeRepoAdapter"
 	auth_service "annotater/internal/bl/auth"
 	document_service "annotater/internal/bl/documentService"
 	document_repo_adapter "annotater/internal/bl/documentService/documentRepo/documentRepoAdapter"
 	user_repo_adapter "annotater/internal/bl/userService/userRepo/userRepoAdapter"
+	annot_handler "annotater/internal/http-server/handlers/annot"
 	annot_type_handler "annotater/internal/http-server/handlers/annotType"
 	auth_handler "annotater/internal/http-server/handlers/auth"
 	document_handler "annotater/internal/http-server/handlers/document"
@@ -38,6 +41,7 @@ func main() {
 	db.AutoMigrate(&models_da.Document{})
 	db.AutoMigrate(&models_da.User{})
 	db.AutoMigrate(&models_da.MarkupType{})
+	db.AutoMigrate(&models_da.Markup{})
 
 	if err != nil {
 		fmt.Println(err.Error())
@@ -51,8 +55,8 @@ func main() {
 	userService := auth_service.NewAuthService(userRepo, hasher, tokenHandler, auth_service.SECRET)
 
 	//annot service
-	/*annotRepo := annot_repo_adapter.NewAnotattionRepositoryAdapter(db)
-	annotService := annot_service.NewAnnotattionService(annotRepo)*/
+	annotRepo := annot_repo_adapter.NewAnotattionRepositoryAdapter(db)
+	annotService := annot_service.NewAnnotattionService(annotRepo)
 
 	//annotType service
 	annotTypeRepo := annot_type_repo_adapter.NewAnotattionTypeRepositoryAdapter(db)
@@ -81,7 +85,11 @@ func main() {
 		r.Post("/annotType/add", annot_type_handler.AddAnnotType(annotTypeService))
 		r.Get("/annotType/get", annot_type_handler.GetAnnotType(annotTypeService))
 		r.Delete("/annotType/delete", annot_type_handler.DeleteAnnotType(annotTypeService))
-		//
+		//annot
+		r.Post("/annot/add", annot_handler.AddAnnot(annotService))
+		r.Get("/annot/get", annot_handler.GetAnnot(annotService))
+		r.Delete("/annot/delete", annot_handler.DeleteAnnot(annotService))
+
 	})
 
 	//auth

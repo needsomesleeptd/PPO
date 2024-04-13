@@ -5,6 +5,7 @@ import (
 	"annotater/internal/models"
 	"bytes"
 	"image"
+	"image/png"
 
 	"github.com/pkg/errors"
 )
@@ -28,6 +29,7 @@ type AnotattionService struct {
 }
 
 func NewAnnotattionService(pRep repository.IAnotattionRepository) IAnotattionService {
+	image.RegisterFormat("png", "\x89PNG\r\n\x1a\n", png.Decode, png.DecodeConfig) //for checking file formats
 	return &AnotattionService{
 		repo: pRep,
 	}
@@ -58,7 +60,7 @@ func (serv *AnotattionService) AddAnottation(anotattion *models.Markup) error {
 
 	err := CheckPngFile(anotattion.PageData)
 	if err != nil {
-		return errors.New(INVALID_FILE_ERR_STR)
+		return errors.Wrap(err, INVALID_FILE_ERR_STR)
 	}
 
 	err = serv.repo.AddAnottation(anotattion)

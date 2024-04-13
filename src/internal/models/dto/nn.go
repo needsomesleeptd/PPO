@@ -9,6 +9,7 @@ type Markup struct {
 	PageData   []byte    `json:"page_data"`
 	ErrorBB    []float32 `json:"error_bb"`
 	ClassLabel uint64    `json:"class_label"`
+	CreatorID  uint64    `json:"creator_id"`
 }
 
 func FromDtoMarkup(markup *Markup) models.Markup {
@@ -18,6 +19,7 @@ func FromDtoMarkup(markup *Markup) models.Markup {
 		ClassLabel: markup.ClassLabel,
 		ErrorBB:    markup.ErrorBB,
 		PageData:   markup.PageData,
+		CreatorID:  markup.CreatorID,
 	}
 
 }
@@ -28,6 +30,7 @@ func ToDtoMarkup(markup models.Markup) *Markup {
 		ClassLabel: markup.ClassLabel,
 		ErrorBB:    markup.ErrorBB,
 		PageData:   markup.PageData,
+		CreatorID:  markup.CreatorID,
 	}
 }
 

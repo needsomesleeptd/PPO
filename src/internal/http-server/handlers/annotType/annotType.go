@@ -28,7 +28,7 @@ type RequestID struct {
 	ID uint64 `json:"id"`
 }
 
-type ResponseModifuByID struct {
+type ResponseGetByID struct {
 	response.Response
 	models_dto.MarkupType
 }
@@ -67,8 +67,9 @@ func GetAnnotType(annoTypeSevice service.IAnotattionTypeService) http.HandlerFun
 		markUp, err = annoTypeSevice.GetAnottationTypeByID(req.ID)
 		if err != nil {
 			render.JSON(w, r, response.Error(ErrAddingAnnoType.Error()))
+			return
 		}
-		resp := ResponseModifuByID{MarkupType: *models_dto.ToDaMarkupType(*markUp), Response: response.OK()}
+		resp := ResponseGetByID{MarkupType: *models_dto.ToDtoMarkupType(*markUp), Response: response.OK()}
 		render.JSON(w, r, resp)
 	}
 }
