@@ -2,53 +2,58 @@ package models_da //stands for data_acess
 
 import (
 	"annotater/internal/models"
-	"database/sql/driver"
 	"encoding/json"
 	"errors"
+
+	"github.com/jackc/pgtype"
 )
 
-type BBCoordsSlice []float32 //because gorm cannot store slices directly(((
-
-func (fs *BBCoordsSlice) Scan(value interface{}) error {
-	if value == nil {
-		return nil
-	}
-	bytes, ok := value.([]byte)
-	if !ok {
-		return errors.New("Invalid data type for Bounding boxes")
-	}
-	return json.Unmarshal(bytes, &fs)
-}
-
-func (fs *BBCoordsSlice) Value() (driver.Value, error) {
-	return json.Marshal(fs)
-}
+var (
+	ErrUnMarshallMarkup = errors.New("erorr in unmarshalling markup")
+	ErrMarshallMarkup   = errors.New("erorr in marshalling markup")
+	ErrSettingMarkup    = errors.New("erorr in setting markup")
+)
 
 type Markup struct {
-	ID         uint64        `gorm:"primaryKey;column:id"`
-	PageData   []byte        `gorm:"column:page_data"`            //png file -- the page data
-	ErrorBB    BBCoordsSlice `gorm:"type:record;column:error_bb"` //Bounding boxes in yolov8 format
-	ClassLabel uint64        `gorm:"column:class_label"`
-	CreatorID  uint64        `gorm:"column:creator_id"`
+	ID         uint64       `gorm:"primaryKey;column:id"`
+	PageData   []byte       `gorm:"column:page_data"`                                 //png file -- the page data
+	ErrorBB    pgtype.JSONB `gorm:"type:jsonb;default:'[]';not null;column:error_bb"` //because gorm cannot store slices directly(((
+	ClassLabel uint64       `gorm:"column:class_label"`
+	CreatorID  uint64       `gorm:"column:creator_id"`
 }
 
-func FromDaMarkup(markupDa *Markup) models.Markup {
-	return models.Markup{
+func FromDaMarkup(markupDa *Markup) (models.Markup, error) {
+	markup := models.Markup{
 		ID:         markupDa.ID,
 		PageData:   markupDa.PageData,
-		ErrorBB:    markupDa.ErrorBB,
 		ClassLabel: markupDa.ClassLabel,
 		CreatorID:  markupDa.CreatorID,
 	}
+	var errorBBsJson []float32
+	err := json.Unmarshal(markupDa.ErrorBB.Bytes, &errorBBsJson)
+	if err != nil {
+		return models.Markup{}, errors.Join(ErrUnMarshallMarkup, err)
+	}
+	markup.ErrorBB = errorBBsJson
+	return markup, nil
+
 }
 
 // ToDaMarkup converts a markup Markup to a data access Markup
-func ToDaMarkup(markup models.Markup) *Markup {
-	return &Markup{
+func ToDaMarkup(markup models.Markup) (*Markup, error) {
+	markupDa := Markup{
 		ID:         markup.ID,
 		PageData:   markup.PageData,
-		ErrorBB:    markup.ErrorBB,
 		ClassLabel: markup.ClassLabel,
 		CreatorID:  markup.CreatorID,
 	}
+	jsonB, err := json.Marshal(markup.ErrorBB)
+	if err != nil {
+		return nil, errors.Join(ErrMarshallMarkup, err)
+	}
+	err = markupDa.ErrorBB.Set(jsonB)
+	if err != nil {
+		return nil, errors.Join(ErrSettingMarkup, err)
+	}
+	return &markupDa, nil
 }

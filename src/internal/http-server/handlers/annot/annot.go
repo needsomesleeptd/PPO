@@ -94,7 +94,8 @@ func GetAnnot(annotService service.IAnotattionService) http.HandlerFunc {
 		var markUp *models.Markup
 		markUp, err = annotService.GetAnottationByID(req.ID)
 		if err != nil {
-			render.JSON(w, r, response.Error(ErrAddingAnnot.Error()))
+			render.JSON(w, r, response.Error(ErrGettingAnnot.Error()))
+			return
 		}
 		resp := ResponseGetByID{Markup: *models_dto.ToDtoMarkup(*markUp), Response: response.OK()}
 		render.JSON(w, r, resp)
@@ -113,6 +114,7 @@ func DeleteAnnot(annotService service.IAnotattionService) http.HandlerFunc {
 		err = annotService.DeleteAnotattion(req.ID)
 		if err != nil {
 			render.JSON(w, r, response.Error(ErrDeletingAnnot.Error()))
+			return
 		}
 		render.JSON(w, r, response.OK())
 	}
