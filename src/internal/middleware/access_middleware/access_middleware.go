@@ -6,6 +6,7 @@ import (
 	"annotater/internal/middleware/auth_middleware"
 	"annotater/internal/models"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/go-chi/render"
@@ -27,8 +28,8 @@ func NewAccessMiddleware(userServiceSrc service.IUserService) *AccessMiddleware 
 
 func (ac *AccessMiddleware) AdminOnlyMiddleware(next http.Handler) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
-		role, ok := auth_middleware.FromIncomingContextRole(r.Context())
+		ctx := r.Context()
+		role, ok := ctx.Value(auth_middleware.RoleContextKey).(models.Role)
 		if !ok {
 			render.JSON(w, r, response.Error(ErrInternalServer.Error()))
 			render.Status(r, http.StatusBadRequest)
@@ -46,13 +47,13 @@ func (ac *AccessMiddleware) AdminOnlyMiddleware(next http.Handler) http.HandlerF
 func (ac *AccessMiddleware) ControllersAndHigherMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-		role, _ := auth_middleware.FromIncomingContextRole(ctx)
-		//fmt.Print(ok, role, ctx)
-		/*if !ok {
+		role, ok := ctx.Value(auth_middleware.RoleContextKey).(models.Role)
+		fmt.Print(ok)
+		if !ok {
 			render.JSON(w, r, response.Error(ErrInternalServer.Error()))
 			render.Status(r, http.StatusBadRequest)
 			return
-		}*/
+		}
 		if ac.userService.IsRolePermitted(role, models.Controller) {
 			render.JSON(w, r, response.Error(ErrAccessDeniedServer.Error()))
 			render.Status(r, http.StatusForbidden)

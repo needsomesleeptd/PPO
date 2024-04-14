@@ -83,21 +83,30 @@ func main() {
 	})
 
 	accesMiddleware := access_middleware.NewAccessMiddleware(userService)
-	router.Group(func(r chi.Router) { //group for which auth middleware is required
+	router.Group(func(r chi.Router) { // group for which auth middleware is required
 		r.Use(authMiddleware)
-		//document
-		r.Post("/document/load", document_handler.LoadDocument(documentService))
-		r.Get("/document/check", document_handler.CheckDocument(documentService))
-		//annotType
-		router.Group(func(r chi.Router) {
-			r.Use(accesMiddleware.ControllersAndHigherMiddleware)
-			r.Post("/annotType/add", annot_type_handler.AddAnnotType(annotTypeService))
-			r.Get("/annotType/get", annot_type_handler.GetAnnotType(annotTypeService))
-			r.Delete("/annotType/delete", annot_type_handler.DeleteAnnotType(annotTypeService))
-			//annot
-			r.Post("/annot/add", annot_handler.AddAnnot(annotService))
-			r.Get("/annot/get", annot_handler.GetAnnot(annotService))
-			r.Delete("/annot/delete", annot_handler.DeleteAnnot(annotService))
+
+		// Document
+		r.Route("/document", func(r chi.Router) {
+			r.Use(accesMiddleware.ControllersAndHigherMiddleware) // apply the desired middleware here
+			r.Post("/load", document_handler.LoadDocument(documentService))
+			r.Get("/check", document_handler.CheckDocument(documentService))
+		})
+
+		// AnnotType
+		r.Route("/annotType", func(r chi.Router) {
+			r.Use(accesMiddleware.ControllersAndHigherMiddleware) // apply the desired middleware here
+			r.Post("/add", annot_type_handler.AddAnnotType(annotTypeService))
+			r.Get("/get", annot_type_handler.GetAnnotType(annotTypeService))
+			r.Delete("/delete", annot_type_handler.DeleteAnnotType(annotTypeService))
+
+		})
+		//Annot
+		r.Route("/annot", func(r chi.Router) {
+			r.Use(accesMiddleware.ControllersAndHigherMiddleware) // apply the desired middleware here
+			r.Post("/add", annot_handler.AddAnnot(annotService))
+			r.Get("/get", annot_handler.GetAnnot(annotService))
+			r.Delete("/delete", annot_handler.DeleteAnnot(annotService))
 		})
 
 	})

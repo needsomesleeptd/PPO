@@ -26,8 +26,8 @@ func FromIncomingContextID(ctx context.Context) (uint64, bool) {
 }
 
 var (
-	UserIDContextKey = contextKeyRole{}
-	RoleContextKey   = contextKeyID{}
+	UserIDContextKey = "contextKeyRole{}"
+	RoleContextKey   = "contextKeyID{}"
 )
 
 func JwtAuthMiddleware(next http.Handler, secret string, tokenHandler auth_utils.ITokenHandler) http.HandlerFunc {
@@ -52,9 +52,10 @@ func JwtAuthMiddleware(next http.Handler, secret string, tokenHandler auth_utils
 			}
 			return
 		}
-
 		ctx := context.WithValue(r.Context(), UserIDContextKey, payload.ID) //TODO:: find out why no strings
 		ctx = context.WithValue(ctx, RoleContextKey, payload.Role)
+		//ctx = r.Clone(ctx)
+
 		next.ServeHTTP(w, r.WithContext(ctx))
 	}
 }
