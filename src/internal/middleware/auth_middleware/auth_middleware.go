@@ -3,6 +3,7 @@ package auth_middleware
 import (
 	auth_service "annotater/internal/bl/auth"
 	response "annotater/internal/lib/api"
+	"annotater/internal/models"
 	auth_utils "annotater/internal/pkg/authUtils"
 	"context"
 	"net/http"
@@ -11,7 +12,23 @@ import (
 	"github.com/go-chi/render"
 )
 
-const UserIDContextKey = "userID"
+type contextKeyRole struct{}
+type contextKeyID struct{}
+
+func FromIncomingContextRole(ctx context.Context) (models.Role, bool) {
+	role, ok := ctx.Value(contextKeyRole{}).(models.Role)
+	return role, ok
+}
+
+func FromIncomingContextID(ctx context.Context) (uint64, bool) {
+	id, ok := ctx.Value(contextKeyID{}).(uint64)
+	return id, ok
+}
+
+var (
+	UserIDContextKey = contextKeyRole{}
+	RoleContextKey   = contextKeyID{}
+)
 
 func JwtAuthMiddleware(next http.Handler, secret string, tokenHandler auth_utils.ITokenHandler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -37,7 +54,7 @@ func JwtAuthMiddleware(next http.Handler, secret string, tokenHandler auth_utils
 		}
 
 		ctx := context.WithValue(r.Context(), UserIDContextKey, payload.ID) //TODO:: find out why no strings
-
+		ctx = context.WithValue(ctx, RoleContextKey, payload.Role)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	}
 }

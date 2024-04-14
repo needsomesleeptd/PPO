@@ -10,11 +10,13 @@ import (
 	auth_service "annotater/internal/bl/auth"
 	document_service "annotater/internal/bl/documentService"
 	document_repo_adapter "annotater/internal/bl/documentService/documentRepo/documentRepoAdapter"
+	service "annotater/internal/bl/userService"
 	user_repo_adapter "annotater/internal/bl/userService/userRepo/userRepoAdapter"
 	annot_handler "annotater/internal/http-server/handlers/annot"
 	annot_type_handler "annotater/internal/http-server/handlers/annotType"
 	auth_handler "annotater/internal/http-server/handlers/auth"
 	document_handler "annotater/internal/http-server/handlers/document"
+	"annotater/internal/middleware/access_middleware"
 	"annotater/internal/middleware/auth_middleware"
 	models_da "annotater/internal/models/modelsDA"
 	auth_utils "annotater/internal/pkg/authUtils"
@@ -52,7 +54,7 @@ func main() {
 	userRepo := user_repo_adapter.NewUserRepositoryAdapter(db)
 	hasher := auth_utils.NewPasswordHashCrypto()
 	tokenHandler := auth_utils.NewJWTTokenHandler()
-	userService := auth_service.NewAuthService(userRepo, hasher, tokenHandler, auth_service.SECRET)
+	authService := auth_service.NewAuthService(userRepo, hasher, tokenHandler, auth_service.SECRET)
 
 	//annot service
 	annotRepo := annot_repo_adapter.NewAnotattionRepositoryAdapter(db)
@@ -70,31 +72,39 @@ func main() {
 	documentRepo := document_repo_adapter.NewDocumentRepositoryAdapter(db)
 	documentService := document_service.NewDocumentService(documentRepo, model)
 
+	//userService 0_0
+	userService := service.NewUserService(userRepo)
+
 	//auth service
 	router := chi.NewRouter()
 
 	authMiddleware := (func(h http.Handler) http.Handler {
 		return auth_middleware.JwtAuthMiddleware(h, auth_service.SECRET, tokenHandler)
 	})
+
+	accesMiddleware := access_middleware.NewAccessMiddleware(userService)
 	router.Group(func(r chi.Router) { //group for which auth middleware is required
 		r.Use(authMiddleware)
 		//document
 		r.Post("/document/load", document_handler.LoadDocument(documentService))
 		r.Get("/document/check", document_handler.CheckDocument(documentService))
 		//annotType
-		r.Post("/annotType/add", annot_type_handler.AddAnnotType(annotTypeService))
-		r.Get("/annotType/get", annot_type_handler.GetAnnotType(annotTypeService))
-		r.Delete("/annotType/delete", annot_type_handler.DeleteAnnotType(annotTypeService))
-		//annot
-		r.Post("/annot/add", annot_handler.AddAnnot(annotService))
-		r.Get("/annot/get", annot_handler.GetAnnot(annotService))
-		r.Delete("/annot/delete", annot_handler.DeleteAnnot(annotService))
+		router.Group(func(r chi.Router) {
+			r.Use(accesMiddleware.ControllersAndHigherMiddleware)
+			r.Post("/annotType/add", annot_type_handler.AddAnnotType(annotTypeService))
+			r.Get("/annotType/get", annot_type_handler.GetAnnotType(annotTypeService))
+			r.Delete("/annotType/delete", annot_type_handler.DeleteAnnotType(annotTypeService))
+			//annot
+			r.Post("/annot/add", annot_handler.AddAnnot(annotService))
+			r.Get("/annot/get", annot_handler.GetAnnot(annotService))
+			r.Delete("/annot/delete", annot_handler.DeleteAnnot(annotService))
+		})
 
 	})
 
 	//auth
-	router.Post("/user/SignUp", auth_handler.SignUp(userService))
-	router.Post("/user/SignIn", auth_handler.SignIn(userService))
+	router.Post("/user/SignUp", auth_handler.SignUp(authService))
+	router.Post("/user/SignIn", auth_handler.SignIn(authService))
 
 	done := make(chan os.Signal, 1)
 	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)

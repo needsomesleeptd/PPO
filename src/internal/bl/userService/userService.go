@@ -11,6 +11,7 @@ var ERROR_CHANGE_ROLE_STR = "Error in changing user role"
 
 type IUserService interface {
 	ChangeUserRoleByLogin(login string, role models.Role) error
+	IsRolePermitted(currRole models.Role, reqRole models.Role) bool
 }
 
 type UserService struct {
@@ -23,7 +24,7 @@ func NewUserService(repo repository.IUserRepository) IUserService {
 	}
 }
 
-func IsRolePermitted(currRole models.Role, reqRole models.Role) bool { //Depends on the order of roles
+func (serv *UserService) IsRolePermitted(currRole models.Role, reqRole models.Role) bool { //Depends on the order of roles
 	return currRole >= reqRole
 }
 
