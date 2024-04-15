@@ -69,7 +69,7 @@ func LoadDocument(documentService service.IDocumentService) http.HandlerFunc {
 			render.JSON(w, r, response.Error(ErrGettingFile.Error()))
 			return
 		}
-		file, _, err := r.FormFile("file")
+		file, _, err := r.FormFile(FILE_HEADER_KEY)
 
 		if err != nil {
 			render.JSON(w, r, response.Error(ErrGettingFile.Error()))
@@ -110,7 +110,7 @@ func CheckDocument(documentService service.IDocumentService) http.HandlerFunc {
 			render.JSON(w, r, response.Error(ErrGettingFile.Error()))
 			return
 		}
-		file, _, err := r.FormFile("file")
+		file, _, err := r.FormFile(FILE_HEADER_KEY)
 
 		if err != nil {
 			render.JSON(w, r, response.Error(ErrGettingFile.Error()))

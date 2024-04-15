@@ -32,7 +32,6 @@ type RequestSignIn struct {
 type ResponseSignIn struct {
 	Response response.Response
 	Jwt      string `json:"jwt"`
-	ID       uint64 `json:"userID"`
 }
 
 func SignUp(authService auth_service.IAuthService) http.HandlerFunc {
@@ -43,7 +42,7 @@ func SignUp(authService auth_service.IAuthService) http.HandlerFunc {
 			render.JSON(w, r, response.Error(ErrDecodingJson.Error())) //TODO:: add logging here
 			return
 		}
-
+		req.User.Role = models.Controller
 		candidate := models_dto.FromDtoUser(&req.User)
 		err = authService.SignUp(&candidate)
 		if err != nil {
@@ -72,7 +71,7 @@ func SignIn(authService auth_service.IAuthService) http.HandlerFunc {
 			return
 		}
 
-		resp := ResponseSignIn{Response: response.OK(), Jwt: tokenStr, ID: candidate.ID}
+		resp := ResponseSignIn{Response: response.OK(), Jwt: tokenStr}
 
 		render.JSON(w, r, resp)
 	}

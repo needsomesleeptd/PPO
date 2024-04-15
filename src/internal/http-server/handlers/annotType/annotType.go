@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	ErrDecodingJson     = errors.New("broken request")
+	ErrBrokenRequest    = errors.New("broken request")
 	ErrAddingAnnoType   = errors.New("error adding annotattion type")
 	ErrGettingAnnoType  = errors.New("error getting annotattion type")
 	ErrDeletingAnnoType = errors.New("error deleting annotattion type")
@@ -36,10 +36,14 @@ type ResponseGetByID struct {
 func AddAnnotType(annoTypeSevice service.IAnotattionTypeService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req RequestAnnotType
-		userID := r.Context().Value(auth_middleware.UserIDContextKey).(uint64)
+		userID, ok := r.Context().Value(auth_middleware.UserIDContextKey).(uint64)
+		if !ok {
+			render.JSON(w, r, response.Error(ErrBrokenRequest.Error())) //TODO:: add logging here
+			return
+		}
 		err := render.DecodeJSON(r.Body, &req)
 		if err != nil {
-			render.JSON(w, r, response.Error(ErrDecodingJson.Error())) //TODO:: add logging here
+			render.JSON(w, r, response.Error(ErrBrokenRequest.Error())) //TODO:: add logging here
 			return
 		}
 		markupType := models.MarkupType{
@@ -60,7 +64,7 @@ func GetAnnotType(annoTypeSevice service.IAnotattionTypeService) http.HandlerFun
 		var req RequestID
 		err := render.DecodeJSON(r.Body, &req)
 		if err != nil {
-			render.JSON(w, r, response.Error(ErrDecodingJson.Error())) //TODO:: add logging here
+			render.JSON(w, r, response.Error(ErrBrokenRequest.Error())) //TODO:: add logging here
 			return
 		}
 		var markUp *models.MarkupType
@@ -79,7 +83,7 @@ func DeleteAnnotType(annoTypeSevice service.IAnotattionTypeService) http.Handler
 		var req RequestID
 		err := render.DecodeJSON(r.Body, &req)
 		if err != nil {
-			render.JSON(w, r, response.Error(ErrDecodingJson.Error()))
+			render.JSON(w, r, response.Error(ErrBrokenRequest.Error()))
 			return
 		}
 		err = annoTypeSevice.DeleteAnotattionType(req.ID)

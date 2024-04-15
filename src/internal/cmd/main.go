@@ -16,6 +16,7 @@ import (
 	annot_type_handler "annotater/internal/http-server/handlers/annotType"
 	auth_handler "annotater/internal/http-server/handlers/auth"
 	document_handler "annotater/internal/http-server/handlers/document"
+	user_handler "annotater/internal/http-server/handlers/user"
 	"annotater/internal/middleware/access_middleware"
 	"annotater/internal/middleware/auth_middleware"
 	models_da "annotater/internal/models/modelsDA"
@@ -38,6 +39,9 @@ var (
 	MODEL_ROUTE       = "http://0.0.0.0:5000/pred"
 )
 
+// andrew1 2
+// admin admin
+// control control
 func main() {
 	db, err := gorm.Open(postgres.New(POSTGRES_CFG), &gorm.Config{})
 	db.AutoMigrate(&models_da.Document{})
@@ -83,6 +87,7 @@ func main() {
 	})
 
 	accesMiddleware := access_middleware.NewAccessMiddleware(userService)
+
 	router.Group(func(r chi.Router) { // group for which auth middleware is required
 		r.Use(authMiddleware)
 
@@ -96,9 +101,14 @@ func main() {
 		// AnnotType
 		r.Route("/annotType", func(r chi.Router) {
 			r.Use(accesMiddleware.ControllersAndHigherMiddleware) // apply the desired middleware here
+
+			annoTypeLoginGroup := r.Group(nil)
+			annoTypeLoginGroup.Use(accesMiddleware.AdminOnlyMiddleware)
+
 			r.Post("/add", annot_type_handler.AddAnnotType(annotTypeService))
 			r.Get("/get", annot_type_handler.GetAnnotType(annotTypeService))
-			r.Delete("/delete", annot_type_handler.DeleteAnnotType(annotTypeService))
+			//not the best solution, think about it
+			annoTypeLoginGroup.Delete("/delete", annot_type_handler.DeleteAnnotType(annotTypeService))
 
 		})
 		//Annot
@@ -108,10 +118,15 @@ func main() {
 			r.Get("/get", annot_handler.GetAnnot(annotService))
 			r.Delete("/delete", annot_handler.DeleteAnnot(annotService))
 		})
+		//user
+		r.Route("/user", func(r chi.Router) {
+			r.Use(accesMiddleware.AdminOnlyMiddleware) // apply the desired middleware here
+			r.Post("/role", user_handler.ChangeUserPerms(userService))
+		})
 
 	})
 
-	//auth
+	//auth, no middleware is required
 	router.Post("/user/SignUp", auth_handler.SignUp(authService))
 	router.Post("/user/SignIn", auth_handler.SignIn(authService))
 

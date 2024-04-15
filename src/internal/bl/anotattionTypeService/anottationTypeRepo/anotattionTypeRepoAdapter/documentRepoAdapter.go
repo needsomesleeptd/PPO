@@ -27,20 +27,28 @@ func (repo *AnotattionTypeRepositoryAdapter) AddAnottationType(markUp *models.Ma
 	return nil
 }
 
-func (repo *AnotattionTypeRepositoryAdapter) DeleteAnotattionType(id uint64) error {
-	var markUpTypeDA models_da.MarkupType
-	markUpTypeDA.ID = id
-	tx := repo.db.Delete(markUpTypeDA)
-	if tx.Error != nil {
-		return errors.Wrap(tx.Error, "Error in deleting anotattion type")
-	}
-	return nil
+func (repo *AnotattionTypeRepositoryAdapter) DeleteAnotattionType(id uint64) error { //note that it is cascade deletion, gorm doesn't support cascade deletion((
+
+	err := repo.db.Transaction(func(tx *gorm.DB) error {
+
+		err := tx.Where("class_label = ?", id).Delete(&models_da.Markup{}).Error
+		if err != nil {
+			return errors.Wrap(tx.Error, "Error in deleting anotattion type")
+		}
+
+		err = tx.Where("id = ?", id).Delete(&models_da.MarkupType{}).Error
+		if err != nil {
+			return errors.Wrap(tx.Error, "Error in deleting anotattion type")
+		}
+		return nil
+	})
+	return err
 }
 
 func (repo *AnotattionTypeRepositoryAdapter) GetAnottationTypeByID(id uint64) (*models.MarkupType, error) {
 	var markUpTypeDA models_da.MarkupType
 	markUpTypeDA.ID = id
-	tx := repo.db.First(&markUpTypeDA)
+	tx := repo.db.Where("id = ?", id).First(&markUpTypeDA)
 	if tx.Error != nil {
 		return nil, errors.Wrap(tx.Error, "Error in getting anotattion type")
 	}

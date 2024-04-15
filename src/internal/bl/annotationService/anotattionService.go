@@ -22,6 +22,8 @@ type IAnotattionService interface {
 	AddAnottation(anotattion *models.Markup) error
 	DeleteAnotattion(id uint64) error
 	GetAnottationByID(id uint64) (*models.Markup, error)
+	GetAnottationByUserID(user_id uint64) ([]models.Markup, error)
+	GetAllAnottations() ([]models.Markup, error)
 }
 
 type AnotattionService struct {
@@ -84,4 +86,20 @@ func (serv *AnotattionService) GetAnottationByID(id uint64) (*models.Markup, err
 		return markup, errors.Wrap(err, GETTING_ANNOT_ERR_STR)
 	}
 	return markup, err
+}
+
+func (serv *AnotattionService) GetAnottationByUserID(user_id uint64) ([]models.Markup, error) {
+	markups, err := serv.repo.GetAnottationsByUserID(user_id)
+	if err != nil {
+		return nil, errors.Wrap(err, GETTING_ANNOT_ERR_STR)
+	}
+	return markups, nil
+}
+
+func (serv *AnotattionService) GetAllAnottations() ([]models.Markup, error) {
+	markups, err := serv.repo.GetAllAnottations()
+	if err != nil {
+		return nil, errors.Wrap(err, GETTING_ANNOT_ERR_STR)
+	}
+	return markups, nil
 }
