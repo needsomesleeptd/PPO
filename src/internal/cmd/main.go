@@ -42,12 +42,29 @@ var (
 // andrew1 2
 // admin admin
 // control control
+
+func migrate(db *gorm.DB) error {
+	err := db.AutoMigrate(&models_da.Document{})
+	if err != nil {
+		return err
+	}
+	err = db.AutoMigrate(&models_da.User{})
+	if err != nil {
+		return err
+	}
+	err = db.AutoMigrate(&models_da.MarkupType{})
+	if err != nil {
+		return err
+	}
+	err = db.AutoMigrate(&models_da.Markup{})
+	if err != nil {
+		return err
+	}
+
+}
+
 func main() {
 	db, err := gorm.Open(postgres.New(POSTGRES_CFG), &gorm.Config{})
-	db.AutoMigrate(&models_da.Document{})
-	db.AutoMigrate(&models_da.User{})
-	db.AutoMigrate(&models_da.MarkupType{})
-	db.AutoMigrate(&models_da.Markup{})
 
 	if err != nil {
 		fmt.Println(err.Error())

@@ -42,7 +42,7 @@ func SignUp(authService auth_service.IAuthService) http.HandlerFunc {
 			render.JSON(w, r, response.Error(ErrDecodingJson.Error())) //TODO:: add logging here
 			return
 		}
-		req.User.Role = models.Controller
+		req.User.Role = models.Sender
 		candidate := models_dto.FromDtoUser(&req.User)
 		err = authService.SignUp(&candidate)
 		if err != nil {

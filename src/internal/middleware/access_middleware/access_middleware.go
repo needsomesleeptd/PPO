@@ -6,7 +6,6 @@ import (
 	"annotater/internal/middleware/auth_middleware"
 	"annotater/internal/models"
 	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/go-chi/render"
@@ -26,7 +25,7 @@ func NewAccessMiddleware(userServiceSrc service.IUserService) *AccessMiddleware 
 	return &AccessMiddleware{userService: userServiceSrc}
 }
 
-func (ac *AccessMiddleware) AdminOnlyMiddleware(next http.Handler) http.HandlerFunc {
+func (ac *AccessMiddleware) AdminOnlyMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		role, ok := ctx.Value(auth_middleware.RoleContextKey).(models.Role)
@@ -48,13 +47,12 @@ func (ac *AccessMiddleware) ControllersAndHigherMiddleware(next http.Handler) ht
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		role, ok := ctx.Value(auth_middleware.RoleContextKey).(models.Role)
-		fmt.Print(ok)
 		if !ok {
 			render.JSON(w, r, response.Error(ErrInternalServer.Error()))
 			render.Status(r, http.StatusBadRequest)
 			return
 		}
-		if ac.userService.IsRolePermitted(role, models.Controller) {
+		if !ac.userService.IsRolePermitted(role, models.Controller) {
 			render.JSON(w, r, response.Error(ErrAccessDeniedServer.Error()))
 			render.Status(r, http.StatusForbidden)
 			return

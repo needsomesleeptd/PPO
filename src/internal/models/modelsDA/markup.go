@@ -18,8 +18,8 @@ type Markup struct {
 	ID         uint64       `gorm:"primaryKey;column:id"`
 	PageData   []byte       `gorm:"column:page_data"`                                 //png file -- the page data
 	ErrorBB    pgtype.JSONB `gorm:"type:jsonb;default:'[]';not null;column:error_bb"` //because gorm cannot store slices directly(((
-	ClassLabel uint64       `gorm:"column:class_label"`
-	CreatorID  uint64       `gorm:"column:creator_id"`
+	ClassLabel uint64       `gorm:"column:class_label;foreignKey:MarkupTypeID"`
+	CreatorID  uint64       `gorm:"column:creator_id;foreignKey:UserID"`
 }
 
 func FromDaMarkup(markupDa *Markup) (models.Markup, error) {
@@ -56,4 +56,19 @@ func ToDaMarkup(markup models.Markup) (*Markup, error) {
 		return nil, errors.Join(ErrSettingMarkup, err)
 	}
 	return &markupDa, nil
+}
+
+func FromDaMarkupSlice(markupsDa []Markup) ([]models.Markup, error) {
+	if markupsDa == nil {
+		return nil, nil
+	}
+	markups := make([]models.Markup, len(markupsDa))
+	var err error
+	for i, markupDa := range markupsDa {
+		markups[i], err = FromDaMarkup(&markupDa)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return markups, nil
 }

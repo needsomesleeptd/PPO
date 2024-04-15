@@ -5,7 +5,7 @@ import "annotater/internal/models"
 type MarkupType struct {
 	ID          uint64 `gorm:"primaryKey;column:id"`
 	Description string `gorm:"column:description"`
-	CreatorID   int    `gorm:"column:creator_id"`
+	CreatorID   int    `gorm:"column:creator_id;foreignKey:UserID"`
 	ClassName   string `gorm:"column:class_name"`
 }
 
