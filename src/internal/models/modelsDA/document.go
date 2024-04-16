@@ -12,7 +12,7 @@ type Document struct {
 	PageCount    int       `gorm:"column:page_count"`
 	DocumentData []byte    `gorm:"column:document_data"`
 	ChecksCount  int       `gorm:"column:checks_count"`
-	CreatorID    uint64    `gorm:"column:creator_id"`
+	CreatorID    uint64    `gorm:"column:creator_id;"`
 	CreationTime time.Time `gorm:"column:creation_time"`
 }
 

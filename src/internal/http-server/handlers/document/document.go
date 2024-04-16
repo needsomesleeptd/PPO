@@ -7,6 +7,7 @@ import (
 	"annotater/internal/models"
 	"errors"
 	"io"
+	"log/slog"
 	"mime/multipart"
 	"net/http"
 	"time"
@@ -28,6 +29,16 @@ const (
 	FILE_HEADER_KEY = "file"
 )
 
+type IDocumentHandler interface {
+	LoadDocument(documentService service.IDocumentService) http.HandlerFunc
+	CheckDocument(documentService service.IDocumentService) http.HandlerFunc
+}
+
+type Documenthandler struct {
+	logger     *slog.Logger
+	docService service.IDocumentService
+}
+
 type RequestLoadDocument struct {
 	Document []byte `json:"document_data"`
 }
@@ -38,6 +49,13 @@ type RequestCheckDocument struct {
 type ResponseCheckDoucment struct {
 	Response response.Response
 	Markups  []models.Markup `json:"markups"`
+}
+
+func NewDocumentHandler(logSrc *slog.Logger, serv service.IDocumentService) Documenthandler {
+	return Documenthandler{
+		logger:     logSrc,
+		docService: serv,
+	}
 }
 
 func ExtractfileBytesHelper(file multipart.File) ([]byte, error) {
@@ -54,31 +72,34 @@ func ExtractfileBytesHelper(file multipart.File) ([]byte, error) {
 
 }
 
-func LoadDocument(documentService service.IDocumentService) http.HandlerFunc {
+func (h *Documenthandler) LoadDocument() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		//var req RequestCheckDocument
-		//err := render.DecodeJSON(r.Body, &req)
 		userID := r.Context().Value(auth_middleware.UserIDContextKey).(uint64)
 		documentID, err := uuid.NewRandom()
 		if err != nil {
 			render.JSON(w, r, response.Error(ErrGettingID.Error()))
+			h.logger.Error(err.Error())
 		}
 
 		err = r.ParseMultipartForm(32 << 20)
 		if err != nil {
 			render.JSON(w, r, response.Error(ErrGettingFile.Error()))
+			h.logger.Error(err.Error())
 			return
 		}
 		file, _, err := r.FormFile(FILE_HEADER_KEY)
 
 		if err != nil {
 			render.JSON(w, r, response.Error(ErrGettingFile.Error()))
+			h.logger.Error(err.Error())
+			return
 		}
 
 		var fileBytes []byte
 		fileBytes, err = ExtractfileBytesHelper(file)
 
 		if err != nil {
+			h.logger.Error(err.Error())
 			render.JSON(w, r, response.Error(err.Error()))
 		}
 
@@ -90,8 +111,9 @@ func LoadDocument(documentService service.IDocumentService) http.HandlerFunc {
 			ChecksCount:  1, //Check here the document repo
 		}
 
-		err = documentService.LoadDocument(document)
+		err = h.docService.LoadDocument(document)
 		if err != nil {
+			h.logger.Error(err.Error())
 			render.JSON(w, r, response.Error(ErrLoadingDocument.Error()))
 			return
 		}
@@ -100,20 +122,21 @@ func LoadDocument(documentService service.IDocumentService) http.HandlerFunc {
 	}
 }
 
-func CheckDocument(documentService service.IDocumentService) http.HandlerFunc {
+func (h *Documenthandler) CheckDocument() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
 		userID := r.Context().Value(auth_middleware.UserIDContextKey).(uint64)
 
 		err := r.ParseMultipartForm(32 << 20)
 		if err != nil {
 			render.JSON(w, r, response.Error(ErrGettingFile.Error()))
+			h.logger.Error(err.Error())
 			return
 		}
 		file, _, err := r.FormFile(FILE_HEADER_KEY)
 
 		if err != nil {
 			render.JSON(w, r, response.Error(ErrGettingFile.Error()))
+			h.logger.Error(err.Error())
 		}
 
 		var fileBytes []byte
@@ -121,6 +144,8 @@ func CheckDocument(documentService service.IDocumentService) http.HandlerFunc {
 
 		if err != nil {
 			render.JSON(w, r, response.Error(err.Error()))
+			h.logger.Error(err.Error())
+			return
 		}
 
 		document := models.Document{
@@ -131,9 +156,10 @@ func CheckDocument(documentService service.IDocumentService) http.HandlerFunc {
 		} //Note that we are not checking documentID
 
 		var markups []models.Markup
-		markups, err = documentService.CheckDocument(document)
+		markups, err = h.docService.CheckDocument(document)
 		if err != nil {
 			render.JSON(w, r, response.Error(err.Error()))
+			h.logger.Error(err.Error())
 			return
 		}
 		res := ResponseCheckDoucment{Markups: markups, Response: response.OK()}

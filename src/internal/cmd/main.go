@@ -22,6 +22,7 @@ import (
 	models_da "annotater/internal/models/modelsDA"
 	auth_utils "annotater/internal/pkg/authUtils"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
@@ -29,6 +30,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -60,12 +62,24 @@ func migrate(db *gorm.DB) error {
 	if err != nil {
 		return err
 	}
+	return nil
+}
 
+func setuplog() *slog.Logger {
+	log := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
+
+	return log
 }
 
 func main() {
 	db, err := gorm.Open(postgres.New(POSTGRES_CFG), &gorm.Config{})
+	log := setuplog()
 
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+	err = migrate(db)
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
@@ -98,21 +112,22 @@ func main() {
 
 	//auth service
 	router := chi.NewRouter()
-
+	router.Use(middleware.Logger)
 	authMiddleware := (func(h http.Handler) http.Handler {
 		return auth_middleware.JwtAuthMiddleware(h, auth_service.SECRET, tokenHandler)
 	})
 
 	accesMiddleware := access_middleware.NewAccessMiddleware(userService)
 
+	documentHandler := document_handler.NewDocumentHandler(log, documentService)
 	router.Group(func(r chi.Router) { // group for which auth middleware is required
 		r.Use(authMiddleware)
 
 		// Document
 		r.Route("/document", func(r chi.Router) {
-			r.Use(accesMiddleware.ControllersAndHigherMiddleware) // apply the desired middleware here
-			r.Post("/load", document_handler.LoadDocument(documentService))
-			r.Get("/check", document_handler.CheckDocument(documentService))
+			//r.Use(accesMiddleware.ControllersAndHigherMiddleware) // apply the desired middleware here
+			r.Post("/load", documentHandler.LoadDocument())
+			r.Post("/check", documentHandler.CheckDocument())
 		})
 
 		// AnnotType

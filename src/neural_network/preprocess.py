@@ -33,7 +33,7 @@ def get_anotattions(png_page,byte_page, model):
     annots = []
     for predict in predicts:
         if (len(predict.boxes.cls.tolist()) !=0):
-            annot = Anotattion(b64encode(byte_page).decode('utf-8'),predict.boxes.xywh.tolist()[0],int(predict.boxes.cls.tolist()[0]))
+            annot = Anotattion(b64encode(byte_page).decode('utf-8'),predict.boxes.xyxy.tolist()[0],int(predict.boxes.cls.tolist()[0]))
             annots.append(annot)
     return annots
     

@@ -23,7 +23,7 @@ def image_post_request():
     pdf_document = fitz.open(stream = pdf_bytes, filetype="pdf")
     page_count = pdf_document.page_count
     annots = []
-    print('got request, starting to processs..')
+    print('got request, starting to processs..,page_count {page_count}')
     for i in range(page_count):
         print(f'starting handling page:{i}')
         png_img,byte_img = extract_page_by_num(pdf_document,i)
@@ -35,7 +35,7 @@ def image_post_request():
         return jsonify({})
     annot_json_dict = [annot.to_json_dict() for annot in annots]
     res_json = jsonify(annot_json_dict)
-    print(annot_json_dict)
+    #print(annot_json_dict)
     return res_json 
 
 
