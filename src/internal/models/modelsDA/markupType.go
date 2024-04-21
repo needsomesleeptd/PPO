@@ -27,3 +27,14 @@ func ToDaMarkupType(markupType models.MarkupType) *MarkupType {
 		ClassName:   markupType.ClassName,
 	}
 }
+
+func FromDaMarkupTypeSlice(markupsDa []MarkupType) []models.MarkupType {
+	if markupsDa == nil {
+		return nil
+	}
+	markups := make([]models.MarkupType, len(markupsDa))
+	for i, markupDa := range markupsDa {
+		markups[i] = FromDaMarkupType(&markupDa)
+	}
+	return markups
+}

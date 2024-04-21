@@ -1,7 +1,7 @@
-package document_view
+package markup_view
 
 import (
-	document_handler "annotater/internal/http-server/handlers/document"
+	annot_handler "annotater/internal/http-server/handlers/annot"
 	response "annotater/internal/lib/api"
 	"annotater/internal/models"
 	bboxes_utils "annotater/tech_ui/utils/bboxes"
@@ -19,15 +19,11 @@ var (
 	fileFormat = ".png"
 )
 
-func GetCheckDocumentResult(resp *document_handler.ResponseCheckDoucment, folderName string) (string, error) {
-	if resp.Response.Status != response.StatusOK {
-		return "", errors.New(resp.Response.Error)
+func GetCheckDocumentResult(resp *annot_handler.ResponseGetByUserID, folderName string) error {
+	if resp.Response != response.OK() {
+		return errors.New(resp.Response.Error)
 	}
 	hashMarkUpType := make(map[uint64]models.MarkupType)
-
-	for _, markUpType := range resp.MarkupTypes {
-		hashMarkUpType[markUpType.ID] = markUpType
-	}
 
 	markups := resp.Markups
 	os.Mkdir(folderName, 0777)
@@ -35,7 +31,7 @@ func GetCheckDocumentResult(resp *document_handler.ResponseCheckDoucment, folder
 
 		img, _, err := image.Decode(bytes.NewReader(markup.PageData))
 		if err != nil {
-			return "", err
+			return err
 		}
 		boundingBoxImg := image.NewRGBA(img.Bounds())
 		draw.Draw(boundingBoxImg, img.Bounds(), img, image.Point{}, draw.Src)
@@ -54,22 +50,14 @@ func GetCheckDocumentResult(resp *document_handler.ResponseCheckDoucment, folder
 		bboxes_utils.DrawText(boundingBoxImg, x1, y1, hashMarkUpType[markup.ID].ClassName)
 		outputFile, err := os.Create(folderName + "/" + strconv.Itoa(i) + fileFormat)
 		if err != nil {
-			return "", err
+			return err
 		}
 		defer outputFile.Close()
 
 		err = png.Encode(outputFile, boundingBoxImg)
 		if err != nil {
-			return "", err
+			return err
 		}
 	}
-	return "OK", nil
-}
-
-func GetLoadDocumentResult(resp *response.Response) (string, error) {
-	if resp.Status == response.StatusOK {
-		return resp.Status, nil
-	} else {
-		return "", errors.New(resp.Error)
-	}
+	return nil
 }

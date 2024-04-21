@@ -47,8 +47,9 @@ type RequestCheckDocument struct {
 }
 
 type ResponseCheckDoucment struct {
-	Response response.Response
-	Markups  []models.Markup `json:"markups"`
+	Response    response.Response
+	Markups     []models.Markup     `json:"markups"`
+	MarkupTypes []models.MarkupType `json:"markupTypes"`
 }
 
 func NewDocumentHandler(logSrc *slog.Logger, serv service.IDocumentService) Documenthandler {
@@ -156,13 +157,14 @@ func (h *Documenthandler) CheckDocument() http.HandlerFunc {
 		} //Note that we are not checking documentID
 
 		var markups []models.Markup
-		markups, err = h.docService.CheckDocument(document)
+		var markupTypes []models.MarkupType
+		markups, markupTypes, err = h.docService.CheckDocument(document)
 		if err != nil {
 			render.JSON(w, r, response.Error(err.Error()))
 			h.logger.Error(err.Error())
 			return
 		}
-		res := ResponseCheckDoucment{Markups: markups, Response: response.OK()}
+		res := ResponseCheckDoucment{Markups: markups, MarkupTypes: markupTypes, Response: response.OK()}
 		render.JSON(w, r, res)
 	}
 }

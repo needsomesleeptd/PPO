@@ -28,9 +28,18 @@ type RequestID struct {
 	ID uint64 `json:"id"`
 }
 
+type RequestIDs struct {
+	IDs []uint64 `json:"ids"`
+}
+
 type ResponseGetByID struct {
 	response.Response
 	models_dto.MarkupType
+}
+
+type ResponseGetByIDs struct {
+	response.Response
+	MarkupTypes []models_dto.MarkupType `json:"markupTypes"`
 }
 
 func AddAnnotType(annoTypeSevice service.IAnotattionTypeService) http.HandlerFunc {
@@ -74,6 +83,51 @@ func GetAnnotType(annoTypeSevice service.IAnotattionTypeService) http.HandlerFun
 			return
 		}
 		resp := ResponseGetByID{MarkupType: *models_dto.ToDtoMarkupType(*markUp), Response: response.OK()}
+		render.JSON(w, r, resp)
+	}
+}
+
+func GetAnnotTypes(annoTypeSevice service.IAnotattionTypeService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var req RequestIDs
+		err := render.DecodeJSON(r.Body, &req)
+		if err != nil {
+			render.JSON(w, r, response.Error(ErrBrokenRequest.Error())) //TODO:: add logging here
+			return
+		}
+		var markUpTypes []models.MarkupType
+		markUpTypes, err = annoTypeSevice.GetAnottationTypesByIDs(req.IDs)
+		if err != nil {
+			render.JSON(w, r, response.Error(ErrAddingAnnoType.Error()))
+			return
+		}
+		resp := ResponseGetByIDs{
+			MarkupTypes: models_dto.ToDtoMarkupTypeSlice(markUpTypes),
+			Response:    response.OK(),
+		}
+
+		render.JSON(w, r, resp)
+	}
+}
+
+func GetAnnotTypesByCreatorID(annoTypeSevice service.IAnotattionTypeService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		userID, ok := r.Context().Value(auth_middleware.UserIDContextKey).(uint64)
+		if !ok {
+			render.JSON(w, r, response.Error(ErrBrokenRequest.Error())) //TODO:: add logging here
+			return
+		}
+
+		markUpTypes, err := annoTypeSevice.GetAnottationTypesByUserID(userID)
+		if err != nil {
+			render.JSON(w, r, response.Error(ErrAddingAnnoType.Error()))
+			return
+		}
+		resp := ResponseGetByIDs{
+			MarkupTypes: models_dto.ToDtoMarkupTypeSlice(markUpTypes),
+			Response:    response.OK(),
+		}
+
 		render.JSON(w, r, resp)
 	}
 }

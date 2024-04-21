@@ -9,6 +9,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
+	uuid "github.com/google/uuid"
 )
 
 // MockIDocumentRepository is a mock of IDocumentRepository interface.
@@ -49,7 +50,7 @@ func (mr *MockIDocumentRepositoryMockRecorder) AddDocument(doc interface{}) *gom
 }
 
 // DeleteDocumentByID mocks base method.
-func (m *MockIDocumentRepository) DeleteDocumentByID(id uint64) error {
+func (m *MockIDocumentRepository) DeleteDocumentByID(id uuid.UUID) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteDocumentByID", id)
 	ret0, _ := ret[0].(error)
@@ -63,7 +64,7 @@ func (mr *MockIDocumentRepositoryMockRecorder) DeleteDocumentByID(id interface{}
 }
 
 // GetDocumentByID mocks base method.
-func (m *MockIDocumentRepository) GetDocumentByID(id uint64) (*models.Document, error) {
+func (m *MockIDocumentRepository) GetDocumentByID(id uuid.UUID) (*models.Document, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDocumentByID", id)
 	ret0, _ := ret[0].(*models.Document)

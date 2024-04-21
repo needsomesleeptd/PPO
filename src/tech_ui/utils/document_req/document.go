@@ -1,7 +1,8 @@
-package document_ui
+package document_req
 
 import (
 	document_handler "annotater/internal/http-server/handlers/document"
+	response "annotater/internal/lib/api"
 	"bytes"
 	"encoding/json"
 	"io"
@@ -26,51 +27,91 @@ func CheckDocument(client *http.Client, documentPath string, jwtToken string) (*
 	}
 	defer file.Close()
 
-	// Prepare the multipart form data
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 
-	// Add the file to the form
-	part, err := writer.CreateFormFile("file", filepath.Base(documentPath))
+	part, err := writer.CreateFormFile(formFileName, filepath.Base(documentPath))
 	if err != nil {
 		return nil, err
 	}
 
-	// Copy the file content to the part
 	_, err = io.Copy(part, file)
 	if err != nil {
 		return nil, err
 	}
 
-	// Close the multipart writer
 	err = writer.Close()
 	if err != nil {
 		return nil, err
 	}
 
-	// Create a POST request
 	req, err := http.NewRequest("POST", url, body)
 	if err != nil {
 		return nil, err
 	}
 
-	// Set the content type header
 	req.Header.Set("Content-Type", writer.FormDataContentType())
-	// Set the authorization header
+
 	req.Header.Set("Authorization", "Bearer "+jwtToken)
 
-	// Send the request
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}
 
-	// Decode the response
 	var response document_handler.ResponseCheckDoucment
 	err = json.NewDecoder(resp.Body).Decode(&response)
 	if err != nil {
 		return nil, err
 	}
+	return &response, nil
+}
 
+func LoadDocument(client *http.Client, documentPath string, jwtToken string) (*response.Response, error) {
+	url := documentPathUrl + "load"
+
+	file, err := os.Open(documentPath)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+
+	part, err := writer.CreateFormFile("file", filepath.Base(documentPath))
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = io.Copy(part, file)
+	if err != nil {
+		return nil, err
+	}
+
+	err = writer.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", url, body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+
+	req.Header.Set("Authorization", "Bearer "+jwtToken)
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	var response response.Response
+	err = json.NewDecoder(resp.Body).Decode(&response)
+	if err != nil {
+		return nil, err
+	}
 	return &response, nil
 }

@@ -52,7 +52,7 @@ func JwtAuthMiddleware(next http.Handler, secret string, tokenHandler auth_utils
 			}
 			return
 		}
-		ctx := context.WithValue(r.Context(), UserIDContextKey, payload.ID) //TODO:: find out why no strings
+		ctx := context.WithValue(r.Context(), UserIDContextKey, payload.ID)
 		ctx = context.WithValue(ctx, RoleContextKey, payload.Role)
 		//ctx = r.Clone(ctx)
 

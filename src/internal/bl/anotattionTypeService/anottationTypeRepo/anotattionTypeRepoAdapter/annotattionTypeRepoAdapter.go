@@ -55,3 +55,25 @@ func (repo *AnotattionTypeRepositoryAdapter) GetAnottationTypeByID(id uint64) (*
 	markUpType := models_da.FromDaMarkupType(&markUpTypeDA)
 	return &markUpType, nil
 }
+
+func (repo *AnotattionTypeRepositoryAdapter) GetAnottationTypesByIDs(ids []uint64) ([]models.MarkupType, error) {
+	var markUpTypesDA []models_da.MarkupType
+
+	tx := repo.db.Find(&markUpTypesDA, ids) // works only when the primary key is set and is a valid ID
+	if tx.Error != nil {
+		return nil, errors.Wrap(tx.Error, "Error in getting anotattion type")
+	}
+	markUpTypes := models_da.FromDaMarkupTypeSlice(markUpTypesDA)
+	return markUpTypes, nil
+}
+
+func (repo *AnotattionTypeRepositoryAdapter) GetAnottationTypesByUserID(creator_id uint64) ([]models.MarkupType, error) {
+	var markUpsTypeDA []models_da.MarkupType
+	tx := repo.db.Where("creator_id = ?", creator_id).Find(&markUpsTypeDA)
+	if tx.Error != nil {
+		return nil, errors.Wrap(tx.Error, "Error in getting anotattion type")
+	}
+	markUps := models_da.FromDaMarkupTypeSlice(markUpsTypeDA)
+
+	return markUps, nil
+}

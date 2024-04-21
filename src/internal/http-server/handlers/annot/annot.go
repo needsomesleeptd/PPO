@@ -43,6 +43,11 @@ type ResponseGetByID struct {
 	models_dto.Markup
 }
 
+type ResponseGetByUserID struct {
+	response.Response
+	Markups []models_dto.Markup
+}
+
 func AddAnnot(annotService service.IAnotattionService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req RequestAddAnnot
@@ -98,6 +103,25 @@ func GetAnnot(annotService service.IAnotattionService) http.HandlerFunc {
 			return
 		}
 		resp := ResponseGetByID{Markup: *models_dto.ToDtoMarkup(*markUp), Response: response.OK()}
+		render.JSON(w, r, resp)
+	}
+}
+
+func GetAnnotsByUserID(annotService service.IAnotattionService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		userID, ok := r.Context().Value(auth_middleware.UserIDContextKey).(uint64)
+		if !ok {
+			render.JSON(w, r, response.Error(ErrDecodingRequest.Error())) //TODO:: add logging here
+			return
+		}
+
+		markUps, err := annotService.GetAnottationByUserID(userID)
+		if err != nil {
+			render.JSON(w, r, response.Error(ErrGettingAnnot.Error()))
+			return
+		}
+		resp := ResponseGetByUserID{Markups: models_dto.ToDtoMarkupSlice(markUps), Response: response.OK()}
 		render.JSON(w, r, resp)
 	}
 }

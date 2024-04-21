@@ -26,3 +26,16 @@ func ToDtoMarkupType(markupType models.MarkupType) *MarkupType {
 		ClassName:   markupType.ClassName,
 	}
 }
+
+func ToDtoMarkupTypeSlice(markupTypes []models.MarkupType) []MarkupType {
+
+	if markupTypes == nil {
+		return nil
+	}
+	markupTypesDTO := make([]MarkupType, len(markupTypes))
+	for i := range markupTypes {
+		markupTypesDTO[i] = *ToDtoMarkupType(markupTypes[i])
+	}
+	return markupTypesDTO
+
+}

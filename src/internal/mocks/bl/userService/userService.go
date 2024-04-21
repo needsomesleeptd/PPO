@@ -47,3 +47,17 @@ func (mr *MockIUserServiceMockRecorder) ChangeUserRoleByLogin(login, role interf
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChangeUserRoleByLogin", reflect.TypeOf((*MockIUserService)(nil).ChangeUserRoleByLogin), login, role)
 }
+
+// IsRolePermitted mocks base method.
+func (m *MockIUserService) IsRolePermitted(currRole, reqRole models.Role) bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IsRolePermitted", currRole, reqRole)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// IsRolePermitted indicates an expected call of IsRolePermitted.
+func (mr *MockIUserServiceMockRecorder) IsRolePermitted(currRole, reqRole interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsRolePermitted", reflect.TypeOf((*MockIUserService)(nil).IsRolePermitted), currRole, reqRole)
+}

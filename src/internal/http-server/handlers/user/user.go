@@ -15,14 +15,14 @@ var (
 	ErrDecodingJson = errors.New("broken request")
 )
 
-type RequestLoadDocument struct {
+type RequestChangeRole struct {
 	Login   string      `json:"login"`
 	ReqRole models.Role `json:"req_role"`
 }
 
 func ChangeUserPerms(userService service.IUserService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req RequestLoadDocument
+		var req RequestChangeRole
 		err := render.DecodeJSON(r.Body, &req)
 		if err != nil {
 			render.JSON(w, r, response.Error(ErrDecodingJson.Error()))

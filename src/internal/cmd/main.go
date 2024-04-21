@@ -105,7 +105,7 @@ func main() {
 	model := nn_adapter.NewDetectionModel(modelhandler)
 
 	documentRepo := document_repo_adapter.NewDocumentRepositoryAdapter(db)
-	documentService := document_service.NewDocumentService(documentRepo, model)
+	documentService := document_service.NewDocumentService(documentRepo, model, annotTypeRepo)
 
 	//userService 0_0
 	userService := service.NewUserService(userRepo)
@@ -125,7 +125,6 @@ func main() {
 
 		// Document
 		r.Route("/document", func(r chi.Router) {
-			//r.Use(accesMiddleware.ControllersAndHigherMiddleware) // apply the desired middleware here
 			r.Post("/load", documentHandler.LoadDocument())
 			r.Post("/check", documentHandler.CheckDocument())
 		})
@@ -139,20 +138,25 @@ func main() {
 
 			r.Post("/add", annot_type_handler.AddAnnotType(annotTypeService))
 			r.Get("/get", annot_type_handler.GetAnnotType(annotTypeService))
+
+			r.Get("/creatorID", annot_type_handler.GetAnnotTypesByCreatorID(annotTypeService))
+
+			r.Get("/gets", annot_type_handler.GetAnnotTypes(annotTypeService))
 			//not the best solution, think about it
 			annoTypeLoginGroup.Delete("/delete", annot_type_handler.DeleteAnnotType(annotTypeService))
 
 		})
 		//Annot
 		r.Route("/annot", func(r chi.Router) {
-			r.Use(accesMiddleware.ControllersAndHigherMiddleware) // apply the desired middleware here
+			r.Use(accesMiddleware.ControllersAndHigherMiddleware)
 			r.Post("/add", annot_handler.AddAnnot(annotService))
 			r.Get("/get", annot_handler.GetAnnot(annotService))
+			r.Get("/creatorID", annot_handler.GetAnnotsByUserID(annotService))
 			r.Delete("/delete", annot_handler.DeleteAnnot(annotService))
 		})
 		//user
 		r.Route("/user", func(r chi.Router) {
-			r.Use(accesMiddleware.AdminOnlyMiddleware) // apply the desired middleware here
+			r.Use(accesMiddleware.AdminOnlyMiddleware)
 			r.Post("/role", user_handler.ChangeUserPerms(userService))
 		})
 

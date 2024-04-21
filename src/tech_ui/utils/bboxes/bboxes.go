@@ -3,16 +3,33 @@ package bboxes_utils
 import (
 	"image"
 	"image/color"
+
+	"golang.org/x/image/font"
+	"golang.org/x/image/font/basicfont"
+	"golang.org/x/image/math/fixed"
 )
 
 type BoundingBox struct {
 	XMin, YMin, XMax, YMax int
 }
 
+func DrawText(img *image.RGBA, x, y int, text string) {
+
+	point := fixed.Point26_6{fixed.I(x), fixed.I(y)}
+	d := &font.Drawer{
+		Dst:  img,
+		Src:  image.NewUniform(color.RGBA{200, 100, 0, 255}), // Configure the text color here
+		Face: basicfont.Face7x13,
+		Dot:  point,
+	}
+	d.DrawString(text)
+}
+
 // DrawBoundingBoxes draws bounding boxes on the image
 func DrawBoundingBoxes(img *image.RGBA, boxes []BoundingBox, color color.RGBA) {
 	for _, box := range boxes {
 		drawRectangle(img, box, color)
+
 	}
 }
 

@@ -62,6 +62,21 @@ func (mr *MockIAnotattionRepositoryMockRecorder) DeleteAnotattion(id interface{}
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAnotattion", reflect.TypeOf((*MockIAnotattionRepository)(nil).DeleteAnotattion), id)
 }
 
+// GetAllAnottations mocks base method.
+func (m *MockIAnotattionRepository) GetAllAnottations() ([]models.Markup, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAllAnottations")
+	ret0, _ := ret[0].([]models.Markup)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAllAnottations indicates an expected call of GetAllAnottations.
+func (mr *MockIAnotattionRepositoryMockRecorder) GetAllAnottations() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllAnottations", reflect.TypeOf((*MockIAnotattionRepository)(nil).GetAllAnottations))
+}
+
 // GetAnottationByID mocks base method.
 func (m *MockIAnotattionRepository) GetAnottationByID(id uint64) (*models.Markup, error) {
 	m.ctrl.T.Helper()
@@ -75,4 +90,19 @@ func (m *MockIAnotattionRepository) GetAnottationByID(id uint64) (*models.Markup
 func (mr *MockIAnotattionRepositoryMockRecorder) GetAnottationByID(id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAnottationByID", reflect.TypeOf((*MockIAnotattionRepository)(nil).GetAnottationByID), id)
+}
+
+// GetAnottationsByUserID mocks base method.
+func (m *MockIAnotattionRepository) GetAnottationsByUserID(id uint64) ([]models.Markup, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAnottationsByUserID", id)
+	ret0, _ := ret[0].([]models.Markup)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAnottationsByUserID indicates an expected call of GetAnottationsByUserID.
+func (mr *MockIAnotattionRepositoryMockRecorder) GetAnottationsByUserID(id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAnottationsByUserID", reflect.TypeOf((*MockIAnotattionRepository)(nil).GetAnottationsByUserID), id)
 }

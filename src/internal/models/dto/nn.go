@@ -44,3 +44,14 @@ func FromDtoMarkupSlice(markupsDto []Markup) []models.Markup {
 	}
 	return markups
 }
+
+func ToDtoMarkupSlice(markups []models.Markup) []Markup {
+	if markups == nil {
+		return nil
+	}
+	markupsDTO := make([]Markup, len(markups))
+	for i := range markups {
+		markupsDTO[i] = *ToDtoMarkup(markups[i])
+	}
+	return markupsDTO
+}
