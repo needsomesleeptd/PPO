@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"image"
+	"image/color"
 	"image/draw"
 	"image/png"
 	"os"
@@ -39,19 +40,19 @@ func GetCheckDocumentResult(resp *document_handler.ResponseCheckDoucment, folder
 		}
 		boundingBoxImg := image.NewRGBA(img.Bounds())
 		draw.Draw(boundingBoxImg, img.Bounds(), img, image.Point{}, draw.Src)
-		//boundingBoxColor := color.RGBA{255, 0, 0, 255}
-		x1, y1, _, _ := int(markup.ErrorBB[0]), int(markup.ErrorBB[1]), int(markup.ErrorBB[2]), int(markup.ErrorBB[3])
-		/*boundingBoxes := []bboxes_utils.BoundingBox{
+		boundingBoxColor := color.RGBA{255, 0, 0, 255}
+		x1, y1, x2, y2 := int(markup.ErrorBB[0]), int(markup.ErrorBB[1]), int(markup.ErrorBB[2]), int(markup.ErrorBB[3])
+		boundingBoxes := []bboxes_utils.BoundingBox{
 			{
 				XMin: x1,
 				YMin: y1,
 				XMax: x2,
 				YMax: y2,
 			},
-		}*/
-		//bboxes_utils.DrawBoundingBoxes(boundingBoxImg, boundingBoxes, boundingBoxColor)
+		}
+		bboxes_utils.DrawBoundingBoxes(boundingBoxImg, boundingBoxes, boundingBoxColor)
 		fmt.Print(hashMarkUpType, hashMarkUpType[markup.ID].ClassName)
-		bboxes_utils.DrawText(boundingBoxImg, x1, y1, hashMarkUpType[markup.ID].ClassName)
+		bboxes_utils.DrawText(boundingBoxImg, x1, y2*2, hashMarkUpType[markup.ID].Description)
 		outputFile, err := os.Create(folderName + "/" + strconv.Itoa(i) + fileFormat)
 		if err != nil {
 			return "", err
