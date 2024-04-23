@@ -132,14 +132,13 @@ func (cr *PDFReportCreator) CreateReport(reportID uuid.UUID, markups []models.Ma
 	if err != nil {
 		return nil, err
 	}
-	cmd := exec.Command("pdflatex", texFilePath)
+
+	outputDirKey := fmt.Sprintf("-output-directory=%s", senderFolderPath)
+	auxDirKey := fmt.Sprintf("-aux-directory=%s", senderFolderPath)
+
+	cmd := exec.Command("pdflatex", outputDirKey, auxDirKey, texFilePath)
 
 	err = cmd.Run() //run twice for latex reasons
-	if err != nil {
-		return nil, fmt.Errorf("error running first latex compile: %v", err)
-	}
-
-	err = cmd.Run()
 	if err != nil {
 		return nil, fmt.Errorf("error running first latex compile: %v", err)
 	}
