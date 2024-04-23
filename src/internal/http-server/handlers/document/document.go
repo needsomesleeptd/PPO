@@ -189,11 +189,6 @@ func (h *Documenthandler) CheckDocument() http.HandlerFunc {
 			render.JSON(w, r, response.Error(err.Error()))
 			return
 		}
-		if err != nil {
-			render.JSON(w, r, response.Error(ErrLoadingDocument.Error()))
-			h.logger.Error(err.Error())
-			return
-		}
 		res := ResponseCheckDoucment{Markups: markups, MarkupTypes: markupTypes, Response: response.OK()}
 		h.logger.Info(fmt.Sprintf("Successfully served %d markups", len(markups)))
 		render.JSON(w, r, res)
