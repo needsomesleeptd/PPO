@@ -32,7 +32,7 @@ def image_post_request():
         annots_page = get_anotattions(png_img,byte_img,model)
         annots.extend(annots_page)
     if len(annots) == 0:
-        return jsonify({})
+        return jsonify([])
     annot_json_dict = [annot.to_json_dict() for annot in annots]
     res_json = jsonify(annot_json_dict)
     #print(annot_json_dict)

@@ -21,7 +21,7 @@ var (
 	pdfFileFilename = "check.pdf"
 	imgFolderPath   = "images/"
 	fileFormat      = ".png"
-	texHeader       = "\\documentclass{article}\n\\usepackage{graphicx}\n\n\\begin{document}\n"
+	texHeader       = "\\documentclass{article}\n\\usepackage{graphicx}\n\n\\begin{document}\n\\section{Error Report}\n"
 	texTail         = "\\end{document}"
 )
 
@@ -134,10 +134,10 @@ func (cr *PDFReportCreator) CreateReport(reportID uuid.UUID, markups []models.Ma
 	}
 
 	outputDirKey := fmt.Sprintf("-output-directory=%s", senderFolderPath)
-	auxDirKey := fmt.Sprintf("-aux-directory=%s", senderFolderPath)
 
-	cmd := exec.Command("pdflatex", outputDirKey, auxDirKey, texFilePath)
-
+	cmd := exec.Command("pdflatex", outputDirKey, texFilePath)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 	err = cmd.Run() //run twice for latex reasons
 	if err != nil {
 		return nil, fmt.Errorf("error running first latex compile: %v", err)
