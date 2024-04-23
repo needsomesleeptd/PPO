@@ -44,7 +44,7 @@ func NewPDFReportCreator(workFolderPath string) IReportCreator { // TODO:: think
 }
 
 func (cr *PDFReportCreator) addImageLatex(imgPath string) string {
-	return "\\newpage\n\\noindent\\includegraphics[width=1\\textwidth, height=1\\textwidth]{" + imgPath + "}\n\n"
+	return "\\newpage\n\\noindent\\includegraphics[width=0.9\\textwidth, height=0.9\\textheight]{" + imgPath + "}\n\n"
 }
 
 func (cr *PDFReportCreator) saveImagesWithBBs(filePathSave string, markups []models.Markup) ([]string, error) {
