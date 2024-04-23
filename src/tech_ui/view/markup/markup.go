@@ -27,7 +27,7 @@ func DrawBbsOnMarkups(resp *annot_handler.ResponseGetByUserID, folderName string
 
 	markups := resp.Markups
 	os.Mkdir(folderName, 0777)
-	for i, markup := range markups {
+	for _, markup := range markups {
 
 		img, _, err := image.Decode(bytes.NewReader(markup.PageData))
 		if err != nil {
@@ -49,7 +49,7 @@ func DrawBbsOnMarkups(resp *annot_handler.ResponseGetByUserID, folderName string
 		}
 		bboxes_utils.DrawBoundingBoxes(boundingBoxImg, boundingBoxes, boundingBoxColor)
 		bboxes_utils.DrawText(boundingBoxImg, x1, y1, hashMarkUpType[markup.ID].ClassName)
-		outputFile, err := os.Create(folderName + "/" + strconv.Itoa(i) + fileFormat)
+		outputFile, err := os.Create(folderName + "/" + strconv.Itoa(int(markup.ID)) + fileFormat)
 		if err != nil {
 			return err
 		}

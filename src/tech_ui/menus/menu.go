@@ -54,7 +54,7 @@ func (m *Menu) AddOptionsController(client *http.Client) {
 	m.cMenu.Option("Load file", ClientEntity{client}, false, m.LoadingDocument)
 	m.cMenu.Option("Add markup", ClientEntity{client}, false, m.AddingAnotattion)
 	m.cMenu.Option("Add markupType", ClientEntity{client}, false, m.AddingAnotattionType)
-	m.cMenu.Option("Deleting markup", ClientEntity{client}, false, m.SignUpMenu)
+	m.cMenu.Option("Deleting markup", ClientEntity{client}, false, m.DeletingAnotattion)
 	m.cMenu.Option("Getting all your markup types", ClientEntity{client}, false, m.GettingAnotattionType)
 	m.cMenu.Option("Getting all your markups", ClientEntity{client}, false, m.GettingAnotattion)
 	m.cMenu.Option("Exit", ClientEntity{client}, false, func(_ wmenu.Opt) error {

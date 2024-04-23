@@ -110,7 +110,7 @@ func ReportDocument(client *http.Client, documentPath string, folderPath string,
 		return err
 	}
 
-	out, err := os.Create(folderPath + "/" + "Err_report" + filepath.Base(documentPath))
+	out, err := os.Create(folderPath + "/" + "err_report_" + filepath.Base(documentPath))
 	if err != nil {
 		return err
 	}
