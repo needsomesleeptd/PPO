@@ -4,6 +4,7 @@ import (
 	"annotater/internal/models"
 	bboxes_utils "annotater/tech_ui/utils/bboxes"
 	"bytes"
+	"fmt"
 	"image"
 	"image/color"
 	"image/draw"
@@ -19,7 +20,7 @@ var (
 	texFileFilename = "check.tex"
 	pdfFileFilename = "check.pdf"
 	imgFolderPath   = "images/"
-	fileFormat      = "*.png"
+	fileFormat      = ".png"
 	texHeader       = "\\documentclass{article}\n\\usepackage{graphicx}\n\n\\begin{document}\n"
 	texTail         = "\\end{document}"
 )
@@ -43,7 +44,7 @@ func NewPDFReportCreator(workFolderPath string) IReportCreator { // TODO:: think
 }
 
 func (cr *PDFReportCreator) addImageLatex(imgPath string) string {
-	return "\\newpage\n\\noindent\\includegraphics{" + imgPath + "}\n\n"
+	return "\\newpage\n\\noindent\\includegraphics[width=1\\textwidth, height=1\\textwidth]{" + imgPath + "}\n\n"
 }
 
 func (cr *PDFReportCreator) saveImagesWithBBs(filePathSave string, markups []models.Markup) ([]string, error) {
@@ -73,9 +74,9 @@ func (cr *PDFReportCreator) saveImagesWithBBs(filePathSave string, markups []mod
 		if err != nil {
 			return nil, err
 		}
-		imgPaths = append(imgPaths, imgFilePath)
-		defer outputFile.Close()
 
+		imgPaths[i] = imgFilePath
+		defer outputFile.Close()
 		err = png.Encode(outputFile, boundingBoxImg)
 		if err != nil {
 			return nil, err
@@ -118,7 +119,7 @@ func (cr *PDFReportCreator) CreateReport(reportID uuid.UUID, markups []models.Ma
 	content := texHeader
 
 	// Iterate over images and texts to insert each pair on a separate page
-	for i := 0; i < len(imgPaths); i++ {
+	for i := 0; i < len(markups); i++ {
 		imgLatex := cr.addImageLatex(imgPaths[i])
 		content += imgLatex + hashMarkUpType[markups[i].ClassLabel].Description + "\n"
 	}
@@ -135,12 +136,12 @@ func (cr *PDFReportCreator) CreateReport(reportID uuid.UUID, markups []models.Ma
 
 	err = cmd.Run() //run twice for latex reasons
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error running first latex compile: %v", err)
 	}
 
 	err = cmd.Run()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error running first latex compile: %v", err)
 	}
 
 	pdfFilePath := senderFolderPath + pdfFileFilename
