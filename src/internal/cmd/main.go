@@ -10,6 +10,7 @@ import (
 	auth_service "annotater/internal/bl/auth"
 	document_service "annotater/internal/bl/documentService"
 	document_repo_adapter "annotater/internal/bl/documentService/documentRepo/documentRepoAdapter"
+	report_creator "annotater/internal/bl/documentService/reportCreator"
 	service "annotater/internal/bl/userService"
 	user_repo_adapter "annotater/internal/bl/userService/userRepo/userRepoAdapter"
 	annot_handler "annotater/internal/http-server/handlers/annot"
@@ -39,6 +40,7 @@ var (
 	CONN_POSTGRES_STR = "host=localhost user=andrew password=1 database=lab01db port=5432" //TODO:: export through parameters
 	POSTGRES_CFG      = postgres.Config{DSN: CONN_POSTGRES_STR}
 	MODEL_ROUTE       = "http://0.0.0.0:5000/pred"
+	REPORTS_PATH      = "reports"
 )
 
 // andrew1 2
@@ -104,8 +106,10 @@ func main() {
 	modelhandler := nn_model_handler.NewHttpModelHandler(MODEL_ROUTE)
 	model := nn_adapter.NewDetectionModel(modelhandler)
 
+	reportCreator := report_creator.NewPDFReportCreator(REPORTS_PATH)
+
 	documentRepo := document_repo_adapter.NewDocumentRepositoryAdapter(db)
-	documentService := document_service.NewDocumentService(documentRepo, model, annotTypeRepo)
+	documentService := document_service.NewDocumentService(documentRepo, model, annotTypeRepo, reportCreator)
 
 	//userService 0_0
 	userService := service.NewUserService(userRepo)

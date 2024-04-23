@@ -47,3 +47,21 @@ func (repo *DocumentRepositoryAdapter) DeleteDocumentByID(id uuid.UUID) error {
 	}
 	return nil
 }
+func (repo *DocumentRepositoryAdapter) GetDocumentsByCreatorID(id uint64) ([]models.Document, error) {
+	var documentsDA []models_da.Document
+	tx := repo.db.Where("creator_id = ?", id).Find(&documentsDA)
+	if tx.Error != nil {
+		return nil, errors.Wrap(tx.Error, "Error in getting documents by creator")
+	}
+	documents := models_da.FromDaDocumentSlice(documentsDA)
+	return documents, nil
+}
+
+func (repo *DocumentRepositoryAdapter) GetDocumentCountByCreator(id uint64) (int64, error) {
+	var count int64
+	tx := repo.db.Model(models_da.Document{}).Where("creator_id = ?", id).Count(&count)
+	if tx.Error != nil {
+		return -1, errors.Wrap(tx.Error, "Error in getting count by creator")
+	}
+	return count, nil
+}

@@ -28,6 +28,21 @@ func FromDaDocument(documentDa *Document) models.Document {
 
 }
 
+func FromDaDocumentSlice(documentsDa []Document) []models.Document {
+
+	if documentsDa == nil {
+		return nil
+	}
+	documents := make([]models.Document, len(documentsDa))
+
+	for i, documentDA := range documentsDa {
+		documents[i] = FromDaDocument(&documentDA)
+
+	}
+	return documents
+
+}
+
 func ToDaDocument(document models.Document) *Document {
 	return &Document{
 		ID:           document.ID,

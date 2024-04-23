@@ -48,6 +48,12 @@ type MarkupType struct {
 	ClassName   string
 }
 
+type ErrorReport struct {
+	DocumentID uuid.UUID
+	ErrorsCnt  int
+	ReportData []byte
+}
+
 type Token struct {
 	UserID  uint64
 	ExpTime time.Duration // think about securing cookies, store cookies on backend (hashing or storing)

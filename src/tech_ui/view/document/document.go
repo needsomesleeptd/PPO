@@ -31,6 +31,7 @@ func GetCheckDocumentResult(resp *document_handler.ResponseCheckDoucment, folder
 	}
 
 	markups := resp.Markups
+	fmt.Print(len(markups))
 	os.Mkdir(folderName, 0777)
 	for i, markup := range markups {
 

@@ -6,6 +6,7 @@ import (
 	"annotater/internal/middleware/auth_middleware"
 	"annotater/internal/models"
 	"errors"
+	"fmt"
 	"io"
 	"log/slog"
 	"mime/multipart"
@@ -118,7 +119,6 @@ func (h *Documenthandler) LoadDocument() http.HandlerFunc {
 			render.JSON(w, r, response.Error(ErrLoadingDocument.Error()))
 			return
 		}
-
 		render.JSON(w, r, response.OK())
 	}
 }
@@ -149,22 +149,47 @@ func (h *Documenthandler) CheckDocument() http.HandlerFunc {
 			return
 		}
 
+		var documentsCount int64
+		documentsCount, err = h.docService.GetDocumentCountByCreatorID(userID)
+
+		if err != nil {
+			render.JSON(w, r, response.Error(ErrGettingFile.Error()))
+			h.logger.Error(err.Error())
+			return
+		}
+
 		document := models.Document{
+			ID:           uuid.New(),
 			CreatorID:    userID,
 			DocumentData: fileBytes,
 			CreationTime: time.Now(),
-			ChecksCount:  1, //Check here the document repo
+			ChecksCount:  int(documentsCount), //Check here the document repo
 		} //Note that we are not checking documentID
+
+		err = h.docService.LoadDocument(document)
+
+		if err != nil {
+			render.JSON(w, r, response.Error(ErrLoadingDocument.Error()))
+			h.logger.Error(err.Error())
+			return
+		}
 
 		var markups []models.Markup
 		var markupTypes []models.MarkupType
 		markups, markupTypes, err = h.docService.CheckDocument(document)
 		if err != nil {
+			h.logger.Error(err.Error())
 			render.JSON(w, r, response.Error(err.Error()))
+			return
+		}
+		_, err = h.docService.CreateReport(document.ID, markups, markupTypes)
+		if err != nil {
+			render.JSON(w, r, response.Error(ErrLoadingDocument.Error()))
 			h.logger.Error(err.Error())
 			return
 		}
 		res := ResponseCheckDoucment{Markups: markups, MarkupTypes: markupTypes, Response: response.OK()}
+		h.logger.Info(fmt.Sprintf("Successfully served %d markups", len(markups)))
 		render.JSON(w, r, res)
 	}
 }
