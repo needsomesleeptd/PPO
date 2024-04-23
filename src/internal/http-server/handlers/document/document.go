@@ -24,6 +24,7 @@ var (
 	ErrGettingID        = errors.New("error generating unqiue document ID")
 	ErrInvalidFile      = errors.New("got invalid file")
 	ErrGettingFile      = errors.New("error retriving file")
+	ErrCreatingReport   = errors.New("error creating document report")
 )
 
 const (
@@ -48,6 +49,12 @@ type RequestCheckDocument struct {
 }
 
 type ResponseCheckDoucment struct {
+	Response    response.Response
+	Markups     []models.Markup     `json:"markups"`
+	MarkupTypes []models.MarkupType `json:"markupTypes"`
+}
+
+type ResponseGetReport struct {
 	Response    response.Response
 	Markups     []models.Markup     `json:"markups"`
 	MarkupTypes []models.MarkupType `json:"markupTypes"`
@@ -182,7 +189,6 @@ func (h *Documenthandler) CheckDocument() http.HandlerFunc {
 			render.JSON(w, r, response.Error(err.Error()))
 			return
 		}
-		_, err = h.docService.CreateReport(document.ID, markups, markupTypes)
 		if err != nil {
 			render.JSON(w, r, response.Error(ErrLoadingDocument.Error()))
 			h.logger.Error(err.Error())
@@ -191,5 +197,79 @@ func (h *Documenthandler) CheckDocument() http.HandlerFunc {
 		res := ResponseCheckDoucment{Markups: markups, MarkupTypes: markupTypes, Response: response.OK()}
 		h.logger.Info(fmt.Sprintf("Successfully served %d markups", len(markups)))
 		render.JSON(w, r, res)
+	}
+}
+
+func (h *Documenthandler) GetDocumentReport() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		userID := r.Context().Value(auth_middleware.UserIDContextKey).(uint64)
+
+		err := r.ParseMultipartForm(32 << 20)
+		if err != nil {
+			render.JSON(w, r, response.Error(ErrGettingFile.Error()))
+			h.logger.Error(err.Error())
+			return
+		}
+		file, _, err := r.FormFile(FILE_HEADER_KEY)
+		if err != nil {
+			render.JSON(w, r, response.Error(ErrGettingFile.Error()))
+			h.logger.Error(err.Error())
+		}
+
+		var fileBytes []byte
+		fileBytes, err = ExtractfileBytesHelper(file)
+
+		if err != nil {
+			render.JSON(w, r, response.Error(err.Error()))
+			h.logger.Error(err.Error())
+			return
+		}
+		var documentsCount int64
+		documentsCount, err = h.docService.GetDocumentCountByCreatorID(userID)
+
+		if err != nil {
+			render.JSON(w, r, response.Error(ErrGettingFile.Error()))
+			h.logger.Error(err.Error())
+			return
+		}
+
+		document := models.Document{
+			ID:           uuid.New(),
+			CreatorID:    userID,
+			DocumentData: fileBytes,
+			CreationTime: time.Now(),
+			ChecksCount:  int(documentsCount), //Check here the document repo
+		} //Note that we are not checking documentID
+
+		err = h.docService.LoadDocument(document)
+		if err != nil {
+			render.JSON(w, r, response.Error(ErrLoadingDocument.Error()))
+			h.logger.Error(err.Error())
+			return
+		}
+
+		var markups []models.Markup
+		var markupTypes []models.MarkupType
+		markups, markupTypes, err = h.docService.CheckDocument(document)
+		if err != nil {
+			h.logger.Error(err.Error())
+			render.JSON(w, r, response.Error(err.Error()))
+			return
+		}
+		report, err := h.docService.CreateReport(document.ID, markups, markupTypes)
+		if err != nil {
+			render.JSON(w, r, response.Error(ErrCreatingReport.Error()))
+			h.logger.Error(err.Error())
+			return
+		}
+		w.Header().Set("Content-Type", http.DetectContentType(report.ReportData))
+		w.Header().Set("Content-Length", fmt.Sprintf("%v", len(report.ReportData)))
+		_, err = w.Write(report.ReportData)
+		if err != nil {
+			render.JSON(w, r, response.Error(ErrCreatingReport.Error()))
+			h.logger.Error(err.Error())
+			return
+		}
+
 	}
 }

@@ -131,6 +131,7 @@ func main() {
 		r.Route("/document", func(r chi.Router) {
 			r.Post("/load", documentHandler.LoadDocument())
 			r.Post("/check", documentHandler.CheckDocument())
+			r.Post("/report", documentHandler.GetDocumentReport())
 		})
 
 		// AnnotType

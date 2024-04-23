@@ -32,7 +32,10 @@ func GetCheckDocumentResult(resp *document_handler.ResponseCheckDoucment, folder
 
 	markups := resp.Markups
 	fmt.Print(len(markups))
-	os.Mkdir(folderName, 0777)
+	err := os.MkdirAll(folderName, 0777)
+	if err != nil {
+		return "", err
+	}
 	for i, markup := range markups {
 
 		img, _, err := image.Decode(bytes.NewReader(markup.PageData))

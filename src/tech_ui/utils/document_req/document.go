@@ -15,6 +15,7 @@ import (
 var (
 	documentPathUrl = "http://localhost:8080/document/"
 	formFileName    = "file"
+	reportFileName  = "report.pdf"
 )
 
 func CheckDocument(client *http.Client, documentPath string, jwtToken string) (*document_handler.ResponseCheckDoucment, error) {
@@ -65,6 +66,61 @@ func CheckDocument(client *http.Client, documentPath string, jwtToken string) (*
 		return nil, err
 	}
 	return &response, nil
+}
+
+func ReportDocument(client *http.Client, documentPath string, folderPath string, jwtToken string) error {
+
+	url := documentPathUrl + "report"
+
+	file, err := os.Open(documentPath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+
+	part, err := writer.CreateFormFile(formFileName, filepath.Base(documentPath))
+	if err != nil {
+		return err
+	}
+
+	_, err = io.Copy(part, file)
+	if err != nil {
+		return err
+	}
+
+	err = writer.Close()
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequest("POST", url, body)
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+
+	req.Header.Set("Authorization", "Bearer "+jwtToken)
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+
+	out, err := os.Create(folderPath + "/" + "Err_report" + filepath.Base(documentPath))
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+
+	_, err = io.Copy(out, resp.Body)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func LoadDocument(client *http.Client, documentPath string, jwtToken string) (*response.Response, error) {

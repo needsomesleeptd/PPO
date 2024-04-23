@@ -68,7 +68,7 @@ func (m *Menu) GettingAnotattion(opt wmenu.Opt) error {
 	if err != nil {
 		return err
 	}
-	err = markup_view.GetCheckDocumentResult(resp, filePath)
+	err = markup_view.DrawBbsOnMarkups(resp, filePath)
 
 	if err != nil {
 		return err

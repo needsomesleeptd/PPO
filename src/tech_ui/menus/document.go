@@ -1,6 +1,8 @@
 package menus
 
 import (
+	response "annotater/internal/lib/api"
+	"annotater/tech_ui/utils/document_req"
 	document_ui "annotater/tech_ui/utils/document_req"
 	document_view "annotater/tech_ui/view/document"
 	"fmt"
@@ -19,19 +21,15 @@ func (m *Menu) checkingDocumentOpt(opt wmenu.Opt) error {
 	fmt.Println("Enter path to the pdf document to check:")
 	fmt.Scan(&filePath)
 
-	fmt.Println("Enter the path to the folder fot the output:")
+	fmt.Println("Enter the path to the folder for the output:")
 	fmt.Scan(&outputFolderPath)
 
-	resp, err := document_ui.CheckDocument(clientEntity.Client, filePath, m.jwt)
+	err := document_req.ReportDocument(clientEntity.Client, filePath, outputFolderPath, m.jwt)
 	if err != nil {
 		return err
 	}
 
-	res, err := document_view.GetCheckDocumentResult(resp, outputFolderPath)
-	if err != nil {
-		return err
-	}
-	fmt.Print(res)
+	fmt.Print(response.StatusOK)
 	return nil
 }
 

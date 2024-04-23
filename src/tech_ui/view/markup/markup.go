@@ -7,8 +7,8 @@ import (
 	bboxes_utils "annotater/tech_ui/utils/bboxes"
 	"bytes"
 	"errors"
-	"fmt"
 	"image"
+	"image/color"
 	"image/draw"
 	"image/png"
 	"os"
@@ -19,7 +19,7 @@ var (
 	fileFormat = ".png"
 )
 
-func GetCheckDocumentResult(resp *annot_handler.ResponseGetByUserID, folderName string) error {
+func DrawBbsOnMarkups(resp *annot_handler.ResponseGetByUserID, folderName string) error {
 	if resp.Response != response.OK() {
 		return errors.New(resp.Response.Error)
 	}
@@ -35,18 +35,19 @@ func GetCheckDocumentResult(resp *annot_handler.ResponseGetByUserID, folderName 
 		}
 		boundingBoxImg := image.NewRGBA(img.Bounds())
 		draw.Draw(boundingBoxImg, img.Bounds(), img, image.Point{}, draw.Src)
-		//boundingBoxColor := color.RGBA{255, 0, 0, 255}
-		x1, y1, _, _ := int(markup.ErrorBB[0]), int(markup.ErrorBB[1]), int(markup.ErrorBB[2]), int(markup.ErrorBB[3])
-		/*boundingBoxes := []bboxes_utils.BoundingBox{
+		imgWidth := float32(img.Bounds().Dx())
+		imgHeight := float32(img.Bounds().Dy())
+		boundingBoxColor := color.RGBA{255, 0, 0, 255}
+		x1, y1, x2, y2 := int(markup.ErrorBB[0]*imgWidth), int(markup.ErrorBB[1]*imgHeight), int(markup.ErrorBB[2]*imgWidth), int(markup.ErrorBB[3]*imgHeight)
+		boundingBoxes := []bboxes_utils.BoundingBox{
 			{
 				XMin: x1,
 				YMin: y1,
 				XMax: x2,
 				YMax: y2,
 			},
-		}*/
-		//bboxes_utils.DrawBoundingBoxes(boundingBoxImg, boundingBoxes, boundingBoxColor)
-		fmt.Print(hashMarkUpType, hashMarkUpType[markup.ID].ClassName)
+		}
+		bboxes_utils.DrawBoundingBoxes(boundingBoxImg, boundingBoxes, boundingBoxColor)
 		bboxes_utils.DrawText(boundingBoxImg, x1, y1, hashMarkUpType[markup.ID].ClassName)
 		outputFile, err := os.Create(folderName + "/" + strconv.Itoa(i) + fileFormat)
 		if err != nil {

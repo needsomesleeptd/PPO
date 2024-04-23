@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -82,9 +83,9 @@ func AddMarkup(client *http.Client, filePath string, bbs []float32, classLabel u
 func GetYourMarkups(client *http.Client, userID uint64, jwtToken string) (*annot_handler.ResponseGetByUserID, error) {
 	url := annotsUrlPath + "creatorID"
 
-	req, err := http.NewRequest("Get", url, nil) // there might need to be a paginzing here
+	req, err := http.NewRequest("GET", url, nil) // there might need to be a paginzing here
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error in request %v", err)
 	}
 
 	req.Header.Set("Authorization", "Bearer "+jwtToken)
@@ -96,7 +97,7 @@ func GetYourMarkups(client *http.Client, userID uint64, jwtToken string) (*annot
 	var resp annot_handler.ResponseGetByUserID
 	err = json.NewDecoder(respJson.Body).Decode(&resp)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error in request decoding json %v", err)
 	}
 	if resp.Status == response.StatusError {
 		return nil, errors.New(resp.Error)
