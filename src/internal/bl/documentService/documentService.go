@@ -1,92 +1,80 @@
 package service
 
 import (
-	nn "annotater/internal/bl/NN"
-	annot_type_repository "annotater/internal/bl/anotattionTypeService/anottationTypeRepo"
-	dock_repository "annotater/internal/bl/documentService/documentRepo"
-	report_creator "annotater/internal/bl/documentService/reportCreator"
+	doc_data_repo "annotater/internal/bl/documentService/documentDataRepo"
+	doc_repository "annotater/internal/bl/documentService/documentMetaDataRepo"
+	rep_data_repo "annotater/internal/bl/documentService/reportDataRepo"
+	rep_creator_service "annotater/internal/bl/reportCreatorService"
+
 	"annotater/internal/models"
 	"bytes"
 
-	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/telkomdev/go-filesig"
 )
 
 const (
-	LOADING_DOCUMENT_ERR_STR  = "Error in loading document"
-	CHECKING_DOCUMENT_ERR_STR = "Error in Checking document"
-	DOCUMENT_FORMAT_ERR_STR   = "Error document loaded in wrong format"
-	REPORT_ERR_STR            = "Error in creating report"
+	LOADING_DOCUMENT_ERR_STR   = "Error in loading document"
+	CHECKING_DOCUMENT_ERR_STR  = "Error in Checking document"
+	DOCUMENT_FORMAT_ERR_STR    = "Error document loaded in wrong format"
+	REPORT_ERR_STR             = "Error in creating report"
+	DOCUMENT_META_SAVE_ERR_STR = "Error in saving metadata of a document"
+	DOCUMENT_SAVE_ERR_STR      = "Error in saving document file"
 )
 
 type IDocumentService interface {
-	LoadDocument(document models.Document) error
-	CheckDocument(document models.Document) ([]models.Markup, []models.MarkupType, error)
-	GetDocumentsByCreatorID(creatorID uint64) ([]models.Document, error)
+	GetDocumentsByCreatorID(creatorID uint64) ([]models.DocumentMetaData, error)
 	GetDocumentCountByCreatorID(creatorID uint64) (int64, error)
-	CreateReport(documentID uuid.UUID, markups []models.Markup, markupTypes []models.MarkupType) (*models.ErrorReport, error)
+	LoadDocument(documentMetaData models.DocumentMetaData, document models.DocumentData) (*models.ErrorReport, error)
 }
 
 type DocumentService struct {
-	docRepo       dock_repository.IDocumentRepository
-	annotTypeRepo annot_type_repository.IAnotattionTypeRepository
-	neuralNetwork nn.INeuralNetwork
-	reportWorker  report_creator.IReportCreator
+	docMetaRepo   doc_repository.IDocumentMetaDataRepository
+	reportRepo    rep_data_repo.IReportDataRepository
+	docRepo       doc_data_repo.IDocumentDataRepository
+	reportService rep_creator_service.IReportCreatorService
 }
 
-func NewDocumentService(docRep dock_repository.IDocumentRepository, pNN nn.INeuralNetwork, typeRep annot_type_repository.IAnotattionTypeRepository, repCreator report_creator.IReportCreator) IDocumentService {
+func NewDocumentService(docMetaRepoSrc doc_repository.IDocumentMetaDataRepository, docRepoSrc doc_data_repo.IDocumentDataRepository, reportRepoSrc rep_data_repo.IReportDataRepository, reportServSrc rep_creator_service.ReportCreatorService) IDocumentService {
 	return &DocumentService{
-		docRepo:       docRep,
-		neuralNetwork: pNN,
-		annotTypeRepo: typeRep,
-		reportWorker:  repCreator,
+		docMetaRepo:   docMetaRepoSrc,
+		reportRepo:    reportRepoSrc,
+		docRepo:       docRepoSrc,
+		reportService: &reportServSrc,
 	}
 }
 
-func (serv *DocumentService) LoadDocument(document models.Document) error {
-	isValid := filesig.IsPdf(bytes.NewReader(document.DocumentData))
+func (serv *DocumentService) LoadDocument(documentMetaData models.DocumentMetaData, document models.DocumentData) (*models.ErrorReport, error) {
+
+	isValid := filesig.IsPdf(bytes.NewReader(document.DocumentBytes))
 	if !isValid {
-		return errors.New(DOCUMENT_FORMAT_ERR_STR)
+		return nil, errors.New(DOCUMENT_FORMAT_ERR_STR)
 	}
 	err := serv.docRepo.AddDocument(&document)
 	if err != nil {
-		return errors.Wrap(err, LOADING_DOCUMENT_ERR_STR)
+		return nil, errors.New(DOCUMENT_SAVE_ERR_STR)
 	}
-	return err
+
+	err = serv.docMetaRepo.AddDocument(&documentMetaData)
+	if err != nil {
+		return nil, errors.New(DOCUMENT_META_SAVE_ERR_STR)
+	}
+	var errReport *models.ErrorReport
+	errReport, err = serv.reportService.CreateReport(document)
+
+	if err != nil {
+		return nil, errors.New(REPORT_ERR_STR)
+	}
+
+	err = serv.reportRepo.AddReport(errReport)
+	if err != nil {
+		return nil, errors.New(DOCUMENT_META_SAVE_ERR_STR)
+	}
+	return errReport, nil
 }
 
-func (serv *DocumentService) CheckDocument(document models.Document) ([]models.Markup, []models.MarkupType, error) {
-
-	isValid := filesig.IsPdf(bytes.NewReader(document.DocumentData))
-	if !isValid {
-		return nil, nil, errors.New(DOCUMENT_FORMAT_ERR_STR)
-	}
-	markups, err := serv.neuralNetwork.Predict(document)
-	if err != nil {
-		return nil, nil, errors.Wrap(err, CHECKING_DOCUMENT_ERR_STR)
-	}
-	ids := make([]uint64, len(markups))
-	for i := range ids {
-		ids[i] = markups[i].ClassLabel
-	}
-	markupTypes, err := serv.annotTypeRepo.GetAnottationTypesByIDs(ids)
-	if err != nil {
-		return nil, nil, errors.Wrap(err, CHECKING_DOCUMENT_ERR_STR)
-	}
-	return markups, markupTypes, err
-}
-
-func (serv *DocumentService) CreateReport(documentID uuid.UUID, markups []models.Markup, markupTypes []models.MarkupType) (*models.ErrorReport, error) {
-	report, err := serv.reportWorker.CreateReport(documentID, markups, markupTypes)
-	if err != nil {
-		return nil, errors.Wrap(err, REPORT_ERR_STR)
-	}
-	return report, err
-}
-
-func (serv *DocumentService) GetDocumentsByCreatorID(creatorID uint64) ([]models.Document, error) {
-	documents, err := serv.docRepo.GetDocumentsByCreatorID(creatorID)
+func (serv *DocumentService) GetDocumentsByCreatorID(creatorID uint64) ([]models.DocumentMetaData, error) {
+	documents, err := serv.docMetaRepo.GetDocumentsByCreatorID(creatorID)
 	if err != nil {
 		return nil, err
 	}
@@ -94,7 +82,7 @@ func (serv *DocumentService) GetDocumentsByCreatorID(creatorID uint64) ([]models
 }
 
 func (serv *DocumentService) GetDocumentCountByCreatorID(creatorID uint64) (int64, error) {
-	count, err := serv.docRepo.GetDocumentCountByCreator(creatorID)
+	count, err := serv.docMetaRepo.GetDocumentCountByCreator(creatorID)
 	if err != nil {
 		return -1, err
 	}

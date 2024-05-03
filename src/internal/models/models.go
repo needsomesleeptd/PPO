@@ -6,13 +6,17 @@ import (
 	"github.com/google/uuid"
 )
 
-type Document struct {
+type DocumentMetaData struct {
 	ID           uuid.UUID
 	PageCount    int
-	DocumentData []byte //pdf file -- the whole file
-	ChecksCount  int
+	DocumentName string
 	CreatorID    uint64
 	CreationTime time.Time
+}
+
+type DocumentData struct {
+	ID            uuid.UUID
+	DocumentBytes []byte //pdf file -- the whole file
 }
 
 type Markup struct {
@@ -50,7 +54,6 @@ type MarkupType struct {
 
 type ErrorReport struct {
 	DocumentID uuid.UUID
-	ErrorsCnt  int
 	ReportData []byte
 }
 
