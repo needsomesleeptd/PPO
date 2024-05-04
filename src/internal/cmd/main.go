@@ -139,8 +139,10 @@ func main() {
 
 		// Document
 		r.Route("/document", func(r chi.Router) {
-			//r.Post("/check", documentHandler.CheckDocument())
 			r.Post("/report", documentHandler.CreateReport())
+			r.Get("/getDocument", documentHandler.GetDocumentByID())
+			r.Get("/getReport", documentHandler.GetReportByID())
+			r.Get("/getDocumentsMeta", documentHandler.GetDocumentsMetaData())
 		})
 
 		// AnnotType

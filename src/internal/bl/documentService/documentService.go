@@ -9,6 +9,7 @@ import (
 	"annotater/internal/models"
 	"bytes"
 
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/telkomdev/go-filesig"
 )
@@ -20,12 +21,16 @@ const (
 	REPORT_ERR_STR             = "Error in creating report"
 	DOCUMENT_META_SAVE_ERR_STR = "Error in saving metadata of a document"
 	DOCUMENT_SAVE_ERR_STR      = "Error in saving document file"
+	DOCUMENT_GET_ERR_STR       = "Error in getting document file"
+	REPORT_GET_ERR_STR         = "Error in getting report file"
 )
 
 type IDocumentService interface {
 	GetDocumentsByCreatorID(creatorID uint64) ([]models.DocumentMetaData, error)
 	GetDocumentCountByCreatorID(creatorID uint64) (int64, error)
 	LoadDocument(documentMetaData models.DocumentMetaData, document models.DocumentData) (*models.ErrorReport, error)
+	GetDocumentByID(ID uuid.UUID) (*models.DocumentData, error)
+	GetReportByID(ID uuid.UUID) (*models.ErrorReport, error)
 }
 
 type DocumentService struct {
@@ -52,23 +57,23 @@ func (serv *DocumentService) LoadDocument(documentMetaData models.DocumentMetaDa
 	}
 	err := serv.docRepo.AddDocument(&document)
 	if err != nil {
-		return nil, errors.New(DOCUMENT_SAVE_ERR_STR)
+		return nil, errors.Wrap(err, DOCUMENT_SAVE_ERR_STR)
 	}
 
 	err = serv.docMetaRepo.AddDocument(&documentMetaData)
 	if err != nil {
-		return nil, errors.New(DOCUMENT_META_SAVE_ERR_STR)
+		return nil, errors.Wrap(err, DOCUMENT_META_SAVE_ERR_STR)
 	}
 	var errReport *models.ErrorReport
 	errReport, err = serv.reportService.CreateReport(document)
 
 	if err != nil {
-		return nil, errors.New(REPORT_ERR_STR)
+		return nil, errors.Wrap(err, REPORT_ERR_STR)
 	}
 
 	err = serv.reportRepo.AddReport(errReport)
 	if err != nil {
-		return nil, errors.New(DOCUMENT_META_SAVE_ERR_STR)
+		return nil, errors.Wrap(err, DOCUMENT_META_SAVE_ERR_STR)
 	}
 	return errReport, nil
 }
@@ -79,6 +84,21 @@ func (serv *DocumentService) GetDocumentsByCreatorID(creatorID uint64) ([]models
 		return nil, err
 	}
 	return documents, err
+}
+func (serv *DocumentService) GetDocumentByID(ID uuid.UUID) (*models.DocumentData, error) {
+	document, err := serv.docRepo.GetDocumentByID(ID)
+	if err != nil {
+		return nil, errors.Wrap(err, DOCUMENT_GET_ERR_STR)
+	}
+	return document, nil
+}
+
+func (serv *DocumentService) GetReportByID(ID uuid.UUID) (*models.ErrorReport, error) {
+	report, err := serv.reportRepo.GetDocumentByID(ID)
+	if err != nil {
+		return nil, errors.Wrap(err, REPORT_GET_ERR_STR)
+	}
+	return report, nil
 }
 
 func (serv *DocumentService) GetDocumentCountByCreatorID(creatorID uint64) (int64, error) {

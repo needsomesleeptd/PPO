@@ -25,10 +25,15 @@ var (
 	ErrInvalidFile      = errors.New("got invalid file")
 	ErrGettingFile      = errors.New("error retriving file")
 	ErrCreatingReport   = errors.New("error creating document report")
+	ErrBrokenRequest    = errors.New("broken request")
+
+	ErrSendingFile = errors.New("error sending file")
 )
 
 const (
 	FILE_HEADER_KEY = "file"
+
+	ErrGetttingMetaData = "error getting metadataDocuments"
 )
 
 type IDocumentHandler interface {
@@ -46,6 +51,10 @@ type RequestLoadDocument struct {
 }
 type RequestCheckDocument struct {
 	Document []byte `json:"document_data"`
+}
+
+type RequestID struct {
+	ID uuid.UUID `json:"ID"`
 }
 
 type ResponseCheckDoucment struct {
@@ -86,10 +95,78 @@ func ExtractfileBytesHelper(file multipart.File) ([]byte, error) {
 
 }
 
+func writeBytesIntoResponse(w http.ResponseWriter, data []byte) error {
+	w.Header().Set("Content-Type", http.DetectContentType(data))
+	w.Header().Set("Content-Length", fmt.Sprintf("%v", len(data)))
+	_, err := w.Write(data)
+	if err != nil {
+		return errors.Join(err, ErrSendingFile)
+	}
+	return nil
+
+}
+
+func (h *Documenthandler) GetDocumentByID() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var req RequestID
+		err := render.DecodeJSON(r.Body, &req)
+		if err != nil {
+			render.JSON(w, r, response.Error(ErrBrokenRequest.Error()))
+			return
+		}
+
+		document, err := h.docService.GetDocumentByID(req.ID)
+		if err != nil {
+			render.JSON(w, r, response.Error(err.Error()))
+			h.logger.Error(err.Error())
+			return
+		}
+		err = writeBytesIntoResponse(w, document.DocumentBytes)
+		if err != nil {
+			render.JSON(w, r, response.Error(ErrSendingFile.Error()))
+			h.logger.Error(err.Error())
+			return
+		}
+		render.JSON(w, r, response.OK())
+	}
+}
+
+func (h *Documenthandler) GetReportByID() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var req RequestID
+		err := render.DecodeJSON(r.Body, &req)
+		if err != nil {
+			render.JSON(w, r, response.Error(ErrBrokenRequest.Error()))
+			return
+		}
+
+		report, err := h.docService.GetReportByID(req.ID)
+		if err != nil {
+			render.JSON(w, r, response.Error(err.Error()))
+			h.logger.Error(err.Error())
+			return
+		}
+		err = writeBytesIntoResponse(w, report.ReportData)
+		if err != nil {
+			render.JSON(w, r, response.Error(ErrSendingFile.Error()))
+			h.logger.Error(err.Error())
+			return
+		}
+		render.JSON(w, r, response.OK())
+	}
+}
+
 func (h *Documenthandler) GetDocumentsMetaData() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := r.Context().Value(auth_middleware.UserIDContextKey).(uint64)
-
+		documentsMetaData, err := h.docService.GetDocumentsByCreatorID(userID)
+		if err != nil {
+			render.JSON(w, r, response.Error(err.Error()))
+			h.logger.Error(err.Error())
+			return
+		}
+		resp := ResponseGettingMetaData{Response: response.OK(), DocumentsMetaData: documentsMetaData}
+		render.JSON(w, r, resp)
 	}
 }
 
