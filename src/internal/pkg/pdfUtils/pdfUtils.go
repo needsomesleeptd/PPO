@@ -3,15 +3,15 @@ package pdf_utils
 import (
 	"bytes"
 
-	"github.com/unidoc/unipdf/v3/processor"
+	"github.com/unidoc/unipdf/v3/model"
 )
 
 func GetPdfPageCount(pdfData []byte) (int, error) {
-	pdf, err := processor.NewPdfReader(bytes.NewReader(pdfData))
+
+	pdf, err := model.NewPdfReader(bytes.NewReader(pdfData))
 	if err != nil {
 		return -1, err
 	}
-	defer pdf.Close()
 
 	pageCount, err := pdf.GetNumPages()
 	if err != nil {
