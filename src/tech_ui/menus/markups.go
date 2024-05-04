@@ -6,8 +6,12 @@ import (
 	markup_view "annotater/tech_ui/view/markup"
 	"fmt"
 	"log"
+	"os"
+	"strconv"
+	"strings"
 
 	"github.com/dixonwille/wmenu/v5"
+	"github.com/olekukonko/tablewriter"
 )
 
 func (m *Menu) AddingAnotattion(opt wmenu.Opt) error {
@@ -55,7 +59,16 @@ func (m *Menu) DeletingAnotattion(opt wmenu.Opt) error {
 	return nil
 }
 
-func (m *Menu) GettingAnotattion(opt wmenu.Opt) error {
+func convertFloatSlicetoString(slice []float32) string {
+	strSlice := make([]string, len(slice))
+	for i, val := range slice {
+		str := strconv.FormatFloat(float64(val), 'f', 2, 32) //use 32 bits and all precision
+		strSlice[i] = str
+	}
+	return strings.Join(strSlice, ", ")
+}
+
+func (m *Menu) GettingAnotattions(opt wmenu.Opt) error {
 	clientEntity, ok := opt.Value.(ClientEntity)
 	if !ok {
 		log.Fatal("Could not cast option's value to ClientEntity")
@@ -68,8 +81,20 @@ func (m *Menu) GettingAnotattion(opt wmenu.Opt) error {
 	if err != nil {
 		return err
 	}
-	err = markup_view.DrawBbsOnMarkups(resp, filePath)
 
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetHeader([]string{"id", "error_bb", "class_label", "creator_id"})
+	for _, markup := range resp.Markups {
+		table.Append([]string{
+			strconv.FormatUint(markup.ID, 10),
+			convertFloatSlicetoString(markup.ErrorBB),
+			strconv.FormatUint(markup.ClassLabel, 10),
+			strconv.FormatUint(markup.CreatorID, 10),
+		})
+	}
+	table.Render()
+
+	err = markup_view.DrawBbsOnMarkups(resp, filePath)
 	if err != nil {
 		return err
 	}
