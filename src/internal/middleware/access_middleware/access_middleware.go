@@ -34,7 +34,7 @@ func (ac *AccessMiddleware) AdminOnlyMiddleware(next http.Handler) http.Handler 
 			render.Status(r, http.StatusBadRequest)
 			return
 		}
-		if ac.userService.IsRolePermitted(role, models.Admin) {
+		if !ac.userService.IsRolePermitted(role, models.Admin) {
 			render.JSON(w, r, response.Error(ErrAccessDeniedServer.Error()))
 			render.Status(r, http.StatusForbidden)
 			return

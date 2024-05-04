@@ -66,3 +66,13 @@ func (repo *UserRepositoryAdapter) CreateUser(user *models.User) error {
 	}
 	return nil
 }
+
+func (repo *UserRepositoryAdapter) GetAllUsers() ([]models.User, error) {
+	var usersDA []models_da.User
+	tx := repo.db.Find(&usersDA)
+	if tx.Error != nil {
+		return nil, errors.Wrap(tx.Error, "Error in getting all users")
+	}
+	users := models_da.FromDaUserSlice(usersDA)
+	return users, nil
+}

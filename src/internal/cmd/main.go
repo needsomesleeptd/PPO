@@ -126,9 +126,11 @@ func main() {
 	//userService 0_0
 	userService := service.NewUserService(userRepo)
 
+	userHandler := user_handler.NewDocumentHandler(log, userService)
 	//auth service
 	router := chi.NewRouter()
 	router.Use(middleware.Logger)
+
 	authMiddleware := (func(h http.Handler) http.Handler {
 		return auth_middleware.JwtAuthMiddleware(h, auth_service.SECRET, tokenHandler)
 	})
@@ -175,7 +177,8 @@ func main() {
 		//user
 		r.Route("/user", func(r chi.Router) {
 			r.Use(accesMiddleware.AdminOnlyMiddleware)
-			r.Post("/role", user_handler.ChangeUserPerms(userService))
+			r.Post("/role", userHandler.ChangeUserPerms())
+			r.Get("/getUsers", userHandler.GetAllUsers())
 		})
 
 	})

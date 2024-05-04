@@ -46,3 +46,11 @@ func ToDtoUser(user models.User) *User {
 		Group:    user.Group,
 	}
 }
+
+func ToDtoUserSlice(users []models.User) []User {
+	usersDTO := make([]User, len(users))
+	for i, user := range users {
+		usersDTO[i] = *ToDtoUser(user)
+	}
+	return usersDTO
+}

@@ -8,10 +8,12 @@ import (
 )
 
 var ERROR_CHANGE_ROLE_STR = "Error in changing user role"
+var ERROR_GETTING_USERS = "Error in getting users"
 
 type IUserService interface {
 	ChangeUserRoleByLogin(login string, role models.Role) error
 	IsRolePermitted(currRole models.Role, reqRole models.Role) bool
+	GetAllUsers() ([]models.User, error)
 }
 
 type UserService struct {
@@ -28,7 +30,7 @@ func (serv *UserService) IsRolePermitted(currRole models.Role, reqRole models.Ro
 	return currRole >= reqRole
 }
 
-func (serv *UserService) ChangeUserRoleByLogin(login string, role models.Role) error { // Для созданяи админа, должна быть маграция бд на старте приложения
+func (serv *UserService) ChangeUserRoleByLogin(login string, role models.Role) error { // Для создания админа, должна быть миграция бд на старте приложения
 	user, err := serv.userRepo.GetUserByLogin(login)
 	if err != nil {
 		return errors.Wrap(err, ERROR_CHANGE_ROLE_STR)
@@ -39,4 +41,12 @@ func (serv *UserService) ChangeUserRoleByLogin(login string, role models.Role) e
 		return errors.Wrap(err, ERROR_CHANGE_ROLE_STR)
 	}
 	return err
+}
+
+func (serv *UserService) GetAllUsers() ([]models.User, error) {
+	users, err := serv.userRepo.GetAllUsers()
+	if err != nil {
+		return nil, errors.Wrap(err, ERROR_GETTING_USERS)
+	}
+	return users, err
 }
