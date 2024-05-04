@@ -41,7 +41,7 @@ func GetMarkupTypesCreatorID(client *http.Client, jwtToken string) ([]models_dto
 	return resp.MarkupTypes, nil
 }
 
-func GetMarkupTypeByCreatorID(client *http.Client, labelName string, description string, jwtToken string) error {
+func AddMarkupTypeByCreatorID(client *http.Client, labelName string, description string, jwtToken string) error {
 	url := annotTypesUrlPath + "add"
 
 	reqBody, err := json.Marshal(annot_type_handler.RequestAnnotType{Description: description, ClassName: labelName})
@@ -61,6 +61,36 @@ func GetMarkupTypeByCreatorID(client *http.Client, labelName string, description
 		return err
 	}
 
+	var resp response.Response
+	err = render.DecodeJSON(respJson.Body, &resp)
+	if err != nil {
+		return err
+	}
+	if resp != response.OK() {
+		return errors.New(resp.Error)
+	}
+	return nil
+}
+
+func DeleteMarkupType(client *http.Client, id uint64, jwtToken string) error {
+	url := annotTypesUrlPath + "delete"
+
+	reqBody, err := json.Marshal(annot_type_handler.RequestID{ID: id})
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequest("DELETE", url, bytes.NewBuffer(reqBody))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+jwtToken)
+	var respJson *http.Response
+	respJson, err = http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
 	var resp response.Response
 	err = render.DecodeJSON(respJson.Body, &resp)
 	if err != nil {

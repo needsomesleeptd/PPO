@@ -1,14 +1,20 @@
 package menus
 
 import (
+	response "annotater/internal/lib/api"
 	"annotater/internal/models"
+	annot_type_req "annotater/tech_ui/utils/markupType"
 	role_req "annotater/tech_ui/utils/role"
+	user_req "annotater/tech_ui/utils/user"
 	"errors"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"strconv"
 
 	"github.com/dixonwille/wmenu/v5"
+	"github.com/olekukonko/tablewriter"
 )
 
 func (m *Menu) RunAdminMenu(client *http.Client) error {
@@ -49,5 +55,44 @@ func (m *Menu) ChangeUserRole(opt wmenu.Opt) error {
 		return err
 	}
 
+	return nil
+}
+
+func (m *Menu) GettingAllUsers(opt wmenu.Opt) error {
+	clientEntity, ok := opt.Value.(ClientEntity)
+	if !ok {
+		log.Fatal("Could not cast option's value to ClientEntity")
+	}
+
+	users, err := user_req.GetAllUsers(clientEntity.Client, m.jwt)
+	if err != nil {
+		return err
+	}
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetHeader([]string{"id", "login", "name", "role", "group"})
+
+	for _, user := range users {
+		table.Append([]string{strconv.FormatUint(user.ID, 10), user.Login, user.Role.ToString(), user.Group})
+	}
+	table.Render()
+
+	return nil
+}
+
+func (m *Menu) DeletingAnotattionType(opt wmenu.Opt) error {
+	clientEntity, ok := opt.Value.(ClientEntity)
+	if !ok {
+		log.Fatal("Could not cast option's value to ClientEntity")
+	}
+
+	var id uint64
+	fmt.Println("Enter the id of the annotattion type to delete")
+	fmt.Scan(&id)
+
+	err := annot_type_req.DeleteMarkupType(clientEntity.Client, id, m.jwt)
+	if err != nil {
+		return err
+	}
+	fmt.Print(response.StatusOK)
 	return nil
 }

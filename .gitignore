@@ -22,7 +22,7 @@ go.work
 
 *.pyc
 *__pychache__*
-mocks
+../mocks/*
 *.png
 *.pdf
 *mocks

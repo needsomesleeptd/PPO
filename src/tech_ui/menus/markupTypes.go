@@ -44,7 +44,7 @@ func (m *Menu) AddingAnotattionType(opt wmenu.Opt) error {
 	fmt.Println("Enter the description of the new type:")
 	fmt.Scan(&description)
 
-	err := annot_type_req.GetMarkupTypeByCreatorID(clientEntity.Client, labelName, description, m.jwt)
+	err := annot_type_req.AddMarkupTypeByCreatorID(clientEntity.Client, labelName, description, m.jwt)
 	if err != nil {
 		return err
 	}

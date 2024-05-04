@@ -35,6 +35,22 @@ const (
 	Admin
 )
 
+func (r Role) ToString() string {
+
+	switch r {
+	case Sender:
+		return "Sender"
+	case Controller:
+		return "Controller"
+	case Admin:
+		return "Admin"
+
+	default:
+		return "Unknown"
+	}
+
+}
+
 type User struct {
 	ID       uint64
 	Login    string
