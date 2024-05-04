@@ -9,8 +9,11 @@ import (
 	annot_type_repo_adapter "annotater/internal/bl/anotattionTypeService/anottationTypeRepo/anotattionTypeRepoAdapter"
 	auth_service "annotater/internal/bl/auth"
 	document_service "annotater/internal/bl/documentService"
-	document_repo_adapter "annotater/internal/bl/documentService/documentRepo/documentRepoAdapter"
-	report_creator "annotater/internal/bl/documentService/reportCreator"
+	doc_data_repo_adapter "annotater/internal/bl/documentService/documentDataRepo/documentDataRepo"
+	document_repo_adapter "annotater/internal/bl/documentService/documentMetaDataRepo/documentMetaDataRepoAdapter"
+	rep_data_repo_adapter "annotater/internal/bl/documentService/reportDataRepo/reportDataRepoAdapter"
+	rep_creator_service "annotater/internal/bl/reportCreatorService"
+	report_creator "annotater/internal/bl/reportCreatorService/reportCreator"
 	service "annotater/internal/bl/userService"
 	user_repo_adapter "annotater/internal/bl/userService/userRepo/userRepoAdapter"
 	annot_handler "annotater/internal/http-server/handlers/annot"
@@ -37,10 +40,12 @@ import (
 )
 
 var (
-	CONN_POSTGRES_STR = "host=localhost user=andrew password=1 database=lab01db port=5432" //TODO:: export through parameters
-	POSTGRES_CFG      = postgres.Config{DSN: CONN_POSTGRES_STR}
-	MODEL_ROUTE       = "http://0.0.0.0:5000/pred"
-	REPORTS_PATH      = "reports"
+	CONN_POSTGRES_STR    = "host=localhost user=andrew password=1 database=lab01db port=5432" //TODO:: export through parameters
+	POSTGRES_CFG         = postgres.Config{DSN: CONN_POSTGRES_STR}
+	MODEL_ROUTE          = "http://0.0.0.0:5000/pred"
+	REPORTS_CREATOR_PATH = "../../../reportsCreator"
+	REPORTS_PATH         = "../../../reports"
+	DOCUMENTS_PATH       = "../../../documents"
 )
 
 // andrew1 2
@@ -106,10 +111,15 @@ func main() {
 	modelhandler := nn_model_handler.NewHttpModelHandler(MODEL_ROUTE)
 	model := nn_adapter.NewDetectionModel(modelhandler)
 
-	reportCreator := report_creator.NewPDFReportCreator(REPORTS_PATH)
+	reportCreator := report_creator.NewPDFReportCreator(REPORTS_CREATOR_PATH)
+	reportCreatorService := rep_creator_service.NewDocumentService(model, annotTypeRepo, reportCreator)
+
+	documentStorage := doc_data_repo_adapter.NewDocumentRepositoryAdapter(DOCUMENTS_PATH)
+
+	reportStorage := rep_data_repo_adapter.NewDocumentRepositoryAdapter(REPORTS_PATH)
 
 	documentRepo := document_repo_adapter.NewDocumentRepositoryAdapter(db)
-	documentService := document_service.NewDocumentService(documentRepo, model, annotTypeRepo, reportCreator)
+	documentService := document_service.NewDocumentService(documentRepo, documentStorage, reportStorage, reportCreatorService)
 
 	//userService 0_0
 	userService := service.NewUserService(userRepo)
@@ -129,9 +139,8 @@ func main() {
 
 		// Document
 		r.Route("/document", func(r chi.Router) {
-			r.Post("/load", documentHandler.LoadDocument())
-			r.Post("/check", documentHandler.CheckDocument())
-			r.Post("/report", documentHandler.GetDocumentReport())
+			//r.Post("/check", documentHandler.CheckDocument())
+			r.Post("/report", documentHandler.CreateReport())
 		})
 
 		// AnnotType

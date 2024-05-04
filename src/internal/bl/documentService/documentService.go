@@ -35,12 +35,12 @@ type DocumentService struct {
 	reportService rep_creator_service.IReportCreatorService
 }
 
-func NewDocumentService(docMetaRepoSrc doc_repository.IDocumentMetaDataRepository, docRepoSrc doc_data_repo.IDocumentDataRepository, reportRepoSrc rep_data_repo.IReportDataRepository, reportServSrc rep_creator_service.ReportCreatorService) IDocumentService {
+func NewDocumentService(docMetaRepoSrc doc_repository.IDocumentMetaDataRepository, docRepoSrc doc_data_repo.IDocumentDataRepository, reportRepoSrc rep_data_repo.IReportDataRepository, reportServSrc rep_creator_service.IReportCreatorService) IDocumentService {
 	return &DocumentService{
 		docMetaRepo:   docMetaRepoSrc,
 		reportRepo:    reportRepoSrc,
 		docRepo:       docRepoSrc,
-		reportService: &reportServSrc,
+		reportService: reportServSrc,
 	}
 }
 
