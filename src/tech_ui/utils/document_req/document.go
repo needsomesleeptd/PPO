@@ -2,7 +2,6 @@ package document_req
 
 import (
 	document_handler "annotater/internal/http-server/handlers/document"
-	response "annotater/internal/lib/api"
 	"bytes"
 	"encoding/json"
 	"io"
@@ -10,12 +9,15 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+
+	"github.com/go-chi/render"
+	"github.com/google/uuid"
 )
 
 var (
 	documentPathUrl = "http://localhost:8080/document/"
 	formFileName    = "file"
-	reportFileName  = "report.pdf"
+	EXT             = ".pdf"
 )
 
 func CheckDocument(client *http.Client, documentPath string, jwtToken string) (*document_handler.ResponseCheckDoucment, error) {
@@ -123,51 +125,99 @@ func ReportDocument(client *http.Client, documentPath string, folderPath string,
 	return nil
 }
 
-func LoadDocument(client *http.Client, documentPath string, jwtToken string) (*response.Response, error) {
-	url := documentPathUrl + "load"
+func GetDocument(client *http.Client, documentPath string, jwtToken string, id uuid.UUID) error {
+	url := documentPathUrl + "getDocument"
 
-	file, err := os.Open(documentPath)
+	reqBody := document_handler.RequestID{ID: id}
+
+	marhsalledBody, err := json.Marshal(reqBody)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	defer file.Close()
-
-	body := &bytes.Buffer{}
-	writer := multipart.NewWriter(body)
-
-	part, err := writer.CreateFormFile("file", filepath.Base(documentPath))
+	var req *http.Request
+	req, err = http.NewRequest("GET", url, bytes.NewReader(marhsalledBody))
 	if err != nil {
-		return nil, err
+		return err
 	}
-
-	_, err = io.Copy(part, file)
-	if err != nil {
-		return nil, err
-	}
-
-	err = writer.Close()
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", url, body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Set("Content-Type", writer.FormDataContentType())
 
 	req.Header.Set("Authorization", "Bearer "+jwtToken)
 
 	resp, err := client.Do(req)
+
+	if err != nil {
+		return err
+	}
+
+	out, err := os.Create(documentPath + "/" + "document_" + id.String() + EXT)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+
+	_, err = io.Copy(out, resp.Body)
+	if err != nil {
+		return err
+	}
+	return err
+}
+
+func GetReport(client *http.Client, documentPath string, jwtToken string, id uuid.UUID) error {
+	url := documentPathUrl + "getReport"
+
+	reqBody := document_handler.RequestID{ID: id}
+
+	marhsalledBody, err := json.Marshal(reqBody)
+	if err != nil {
+		return err
+	}
+	var req *http.Request
+	req, err = http.NewRequest("GET", url, bytes.NewReader(marhsalledBody))
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Authorization", "Bearer "+jwtToken)
+
+	resp, err := client.Do(req)
+
+	if err != nil {
+		return err
+	}
+
+	out, err := os.Create(documentPath + "/" + "report_" + id.String() + EXT)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+
+	_, err = io.Copy(out, resp.Body)
+	if err != nil {
+		return err
+	}
+	return err
+}
+
+func GetDocumentsMetaData(client *http.Client, jwtToken string) (*document_handler.ResponseGettingMetaData, error) {
+	url := documentPathUrl + "getDocumentsMeta"
+
+	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	var response response.Response
-	err = json.NewDecoder(resp.Body).Decode(&response)
+	req.Header.Set("Authorization", "Bearer "+jwtToken)
+
+	respJson, err := client.Do(req)
+
 	if err != nil {
 		return nil, err
 	}
-	return &response, nil
+
+	var resp document_handler.ResponseGettingMetaData
+	err = render.DecodeJSON(respJson.Body, &resp)
+	if err != nil {
+		return nil, err
+	}
+
+	return &resp, nil
 }

@@ -11,22 +11,24 @@ import (
 )
 
 type DocumentDataRepositoryAdapter struct {
-	root string
+	root          string
+	fileExtension string //it is optional
 }
 
-func NewDocumentRepositoryAdapter(rootSrc string) doc_data_repo.IDocumentDataRepository {
+func NewDocumentRepositoryAdapter(rootSrc string, ext string) doc_data_repo.IDocumentDataRepository {
 	return &DocumentDataRepositoryAdapter{
-		root: rootSrc,
+		root:          rootSrc,
+		fileExtension: ext,
 	}
 }
 
 func (repo *DocumentDataRepositoryAdapter) MakeDir(dir string) error {
-	dirPath := fmt.Sprintf("%s/%s", repo.root, dir)
+	dirPath := fmt.Sprintf("%s/%s", repo.root, dir) + repo.fileExtension
 	return os.MkdirAll(dirPath, 0755)
 }
 
 func (repo *DocumentDataRepositoryAdapter) Exists(path string) bool {
-	fullPath := fmt.Sprintf("%s/%s", repo.root, path)
+	fullPath := fmt.Sprintf("%s/%s", repo.root, path) + repo.fileExtension
 	_, err := os.Stat(fullPath)
 
 	return !os.IsNotExist(err)
@@ -40,7 +42,7 @@ func (repo *DocumentDataRepositoryAdapter) AddDocument(doc *models.DocumentData)
 		}
 	}
 
-	filePath := fmt.Sprintf("%s/%s", repo.root, doc.ID)
+	filePath := fmt.Sprintf("%s/%s", repo.root, doc.ID) + repo.fileExtension
 
 	err := os.WriteFile(filePath, doc.DocumentBytes, 0644)
 	if err != nil {
@@ -51,7 +53,7 @@ func (repo *DocumentDataRepositoryAdapter) AddDocument(doc *models.DocumentData)
 }
 
 func (repo *DocumentDataRepositoryAdapter) DeleteDocumentByID(id uuid.UUID) error {
-	filePath := fmt.Sprintf("%s/%s", repo.root, id)
+	filePath := fmt.Sprintf("%s/%s", repo.root, id) + repo.fileExtension
 	err := os.Remove(filePath)
 	if err != nil {
 		return errors.Wrap(err, "error in deleting document data")
@@ -61,7 +63,7 @@ func (repo *DocumentDataRepositoryAdapter) DeleteDocumentByID(id uuid.UUID) erro
 }
 
 func (repo *DocumentDataRepositoryAdapter) GetDocumentByID(id uuid.UUID) (*models.DocumentData, error) {
-	filePath := fmt.Sprintf("%s/%s", repo.root, id)
+	filePath := fmt.Sprintf("%s/%s", repo.root, id) + repo.fileExtension
 	fileBytes, err := os.ReadFile(filePath)
 
 	if err != nil {

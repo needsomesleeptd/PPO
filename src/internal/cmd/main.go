@@ -46,6 +46,8 @@ var (
 	REPORTS_CREATOR_PATH = "../../../reportsCreator"
 	REPORTS_PATH         = "../../../reports"
 	DOCUMENTS_PATH       = "../../../documents"
+	DOCUMENTS_EXT        = ".pdf"
+	REPORTS_EXT          = ".pdf"
 )
 
 // andrew1 2
@@ -114,9 +116,9 @@ func main() {
 	reportCreator := report_creator.NewPDFReportCreator(REPORTS_CREATOR_PATH)
 	reportCreatorService := rep_creator_service.NewDocumentService(model, annotTypeRepo, reportCreator)
 
-	documentStorage := doc_data_repo_adapter.NewDocumentRepositoryAdapter(DOCUMENTS_PATH)
+	documentStorage := doc_data_repo_adapter.NewDocumentRepositoryAdapter(DOCUMENTS_PATH, DOCUMENTS_EXT)
 
-	reportStorage := rep_data_repo_adapter.NewDocumentRepositoryAdapter(REPORTS_PATH)
+	reportStorage := rep_data_repo_adapter.NewDocumentRepositoryAdapter(REPORTS_PATH, REPORTS_EXT)
 
 	documentRepo := document_repo_adapter.NewDocumentRepositoryAdapter(db)
 	documentService := document_service.NewDocumentService(documentRepo, documentStorage, reportStorage, reportCreatorService)
