@@ -15,7 +15,7 @@ require (
 	github.com/signintech/gopdf v0.23.1
 	github.com/stretchr/testify v1.9.0
 	github.com/telkomdev/go-filesig v1.0.2
-	golang.org/x/crypto v0.20.0
+	golang.org/x/crypto v0.22.0
 	golang.org/x/image v0.15.0
 	gorm.io/driver/postgres v1.5.7
 	gorm.io/gorm v1.25.9
@@ -40,8 +40,9 @@ require (
 	github.com/phpdave11/gofpdi v1.0.14-0.20211212211723-1f10f9844311 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rogpeppe/go-internal v1.12.0 // indirect
+	github.com/unidoc/unipdf/v3 v3.58.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
-	golang.org/x/sys v0.17.0 // indirect
+	golang.org/x/sys v0.19.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

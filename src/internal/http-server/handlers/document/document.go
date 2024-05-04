@@ -5,6 +5,7 @@ import (
 	response "annotater/internal/lib/api"
 	"annotater/internal/middleware/auth_middleware"
 	"annotater/internal/models"
+	pdf_utils "annotater/internal/pkg/pdfUtils"
 	"errors"
 	"fmt"
 	"io"
@@ -27,7 +28,8 @@ var (
 	ErrCreatingReport   = errors.New("error creating document report")
 	ErrBrokenRequest    = errors.New("broken request")
 
-	ErrSendingFile = errors.New("error sending file")
+	ErrSendingFile      = errors.New("error sending file")
+	ErrGettingPageCount = errors.New("error getting pagecount")
 )
 
 const (
@@ -195,11 +197,20 @@ func (h *Documenthandler) CreateReport() http.HandlerFunc {
 			return
 		}
 
+		var pagesCount int
+		pagesCount, err = pdf_utils.GetPdfPageCount(fileBytes)
+
+		if err != nil {
+			h.logger.Error(errors.Join(err, ErrGettingPageCount).Error())
+			pagesCount = -1
+		}
+
 		documentMetaData := models.DocumentMetaData{
 			ID:           uuid.New(),
 			CreatorID:    userID,
 			DocumentName: handler.Filename,
 			CreationTime: time.Now(),
+			PageCount:    pagesCount,
 		}
 		documentData := models.DocumentData{
 			DocumentBytes: fileBytes,

@@ -63,10 +63,10 @@ func (suite *UsecaseRepositoryTestSuite) TearDownTest() {
 
 // testing Document Service
 func (suite *UsecaseRepositoryTestSuite) TestUsecaseAddDocument() {
-	var document *models.Document
+	var document *models.DocumentMetaData
 	userRepo := document_repo_adapter.NewDocumentRepositoryAdapter(suite.db)
 	id := uuid.UUID{2}
-	insertedDocument := models.Document{ID: id, DocumentData: createPDFBuffer(TEST_VALID_PDF)}
+	insertedDocument := models.DocumentMetaData{ID: id, DocumentData: createPDFBuffer(TEST_VALID_PDF)}
 	err := userRepo.AddDocument(&insertedDocument)
 	suite.Require().NoError(err)
 	document, err = userRepo.GetDocumentByID(id)
@@ -77,13 +77,13 @@ func (suite *UsecaseRepositoryTestSuite) TestUsecaseAddDocument() {
 }
 
 func (suite *UsecaseRepositoryTestSuite) TestUsecaseLoadDocument() {
-	var document *models.Document
+	var document *models.DocumentMetaData
 	userRepo := document_repo_adapter.NewDocumentRepositoryAdapter(suite.db)
 	handler := mock_nn_model_handler.NewMockIModelHandler(&gomock.Controller{})
 	nn := nn_adapter.NewDetectionModel(handler)
 	service := service.NewDocumentService(userRepo, nn)
 	id := uuid.UUID{2}
-	insertedDocument := models.Document{ID: id, DocumentData: createPDFBuffer(TEST_VALID_PDF)}
+	insertedDocument := models.DocumentMetaData{ID: id, DocumentData: createPDFBuffer(TEST_VALID_PDF)}
 	err := service.LoadDocument(insertedDocument)
 	suite.Assert().NoError(err)
 	document, err = userRepo.GetDocumentByID(id)
@@ -100,7 +100,7 @@ func (suite *UsecaseRepositoryTestSuite) TestUsecaseCheckDocument() {
 	nn := nn_adapter.NewDetectionModel(handler)
 	service := service.NewDocumentService(userRepo, nn)
 	id := uuid.UUID{2}
-	insertedDocument := models.Document{ID: id, DocumentData: createPDFBuffer(TEST_VALID_PDF)}
+	insertedDocument := models.DocumentMetaData{ID: id, DocumentData: createPDFBuffer(TEST_VALID_PDF)}
 	marups := []models_dto.Markup{
 		{ErrorBB: []float32{0.1, 0.2, 0.3, 0.2}, ClassLabel: 1},
 		{ErrorBB: []float32{0.3, 0.2, 0.1, 0.3}, ClassLabel: 2},
@@ -114,16 +114,16 @@ func (suite *UsecaseRepositoryTestSuite) TestUsecaseCheckDocument() {
 }
 
 func (suite *UsecaseRepositoryTestSuite) TestUsecaseDeleteDocumentID() {
-	document := models.Document{}
+	document := models.DocumentMetaData{}
 	userRepo := document_repo_adapter.NewDocumentRepositoryAdapter(suite.db)
 	id := uuid.UUID{2}
-	insertedDocument := models.Document{ID: id, DocumentData: createPDFBuffer(TEST_VALID_PDF)}
+	insertedDocument := models.DocumentMetaData{ID: id, DocumentData: createPDFBuffer(TEST_VALID_PDF)}
 	err := userRepo.AddDocument(&insertedDocument)
 	suite.Require().NoError(err)
-	suite.Assert().NoError(suite.db.Table("documents").First(&document, models.Document{ID: id}).Error)
+	suite.Assert().NoError(suite.db.Table("documents").First(&document, models.DocumentMetaData{ID: id}).Error)
 	err = userRepo.DeleteDocumentByID(id)
 	suite.Require().NoError(err)
-	suite.Assert().Error(suite.db.Table("documents").First(&document, models.Document{ID: id}).Error)
+	suite.Assert().Error(suite.db.Table("documents").First(&document, models.DocumentMetaData{ID: id}).Error)
 
 }
 
