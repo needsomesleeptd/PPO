@@ -35,7 +35,7 @@ func (m *MockIDocumentService) EXPECT() *MockIDocumentServiceMockRecorder {
 }
 
 // CheckDocument mocks base method.
-func (m *MockIDocumentService) CheckDocument(document models.Document) ([]models.Markup, error) {
+func (m *MockIDocumentService) CheckDocument(document models.DocumentMetaData) ([]models.Markup, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CheckDocument", document)
 	ret0, _ := ret[0].([]models.Markup)
@@ -50,7 +50,7 @@ func (mr *MockIDocumentServiceMockRecorder) CheckDocument(document interface{}) 
 }
 
 // LoadDocument mocks base method.
-func (m *MockIDocumentService) LoadDocument(document models.Document) error {
+func (m *MockIDocumentService) LoadDocument(document models.DocumentMetaData) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "LoadDocument", document)
 	ret0, _ := ret[0].(error)

@@ -178,7 +178,7 @@ func main() {
 			r.Get("/get", annot_handler.GetAnnot(annotService))
 			r.Get("/creatorID", annot_handler.GetAnnotsByUserID(annotService))
 
-			adminOnlyAnnots.Delete("/delete", annot_handler.DeleteAnnot(annotService))
+			r.Delete("/delete", annot_handler.DeleteAnnot(annotService))
 			adminOnlyAnnots.Get("/getsAll", annot_handler.GetAllAnnots(annotService))
 		})
 		//user

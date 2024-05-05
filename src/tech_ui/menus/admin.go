@@ -49,7 +49,9 @@ func (m *Menu) ChangeUserRole(opt wmenu.Opt) error {
 
 	fmt.Print("Enter the wanted role (0-sender,1-controller,2-admin)")
 	fmt.Scan(&role)
-
+	if role < 1 || role > 2 {
+		return errors.New("invalid error number")
+	}
 	err := role_req.ChangeUserRole(clientEntity.Client, login, role, m.jwt)
 	if err != nil {
 		return err

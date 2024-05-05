@@ -26,6 +26,7 @@ var (
 	ErrInternalServ      = NewUserErr("internal server error")
 	ErrDecodingRequest   = NewUserErr("broken request")
 	ErrDuplicateuserData = NewUserErr("user with this login already exists")
+	ErrViolatingKeyAnnot = NewUserErr("there is no annot type for this anotattion")
 )
 
 func GetUserError(err error) error { // error which will be returned to user

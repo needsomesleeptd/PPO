@@ -2,13 +2,16 @@ package document_req
 
 import (
 	document_handler "annotater/internal/http-server/handlers/document"
+	response "annotater/internal/lib/api"
 	"bytes"
 	"encoding/json"
+	"errors"
 	"io"
 	"mime/multipart"
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/go-chi/render"
 	"github.com/google/uuid"
@@ -111,6 +114,17 @@ func ReportDocument(client *http.Client, documentPath string, folderPath string,
 	if err != nil {
 		return err
 	}
+	ct := resp.Header.Get("Content-Type")
+	if strings.Contains(ct, "application/json") {
+		var respJson response.Response
+		err = json.NewDecoder(resp.Body).Decode(&respJson)
+		if err != nil {
+			return err
+		}
+		if respJson.Status == response.StatusError {
+			return errors.New(respJson.Error)
+		}
+	}
 
 	out, err := os.Create(folderPath + "/" + "err_report_" + filepath.Base(documentPath))
 	if err != nil {
@@ -143,6 +157,18 @@ func GetDocument(client *http.Client, documentPath string, jwtToken string, id u
 	req.Header.Set("Authorization", "Bearer "+jwtToken)
 
 	resp, err := client.Do(req)
+
+	ct := resp.Header.Get("Content-Type")
+	if strings.Contains(ct, "application/json") {
+		var respJson response.Response
+		err = json.NewDecoder(resp.Body).Decode(&respJson)
+		if err != nil {
+			return err
+		}
+		if respJson.Status == response.StatusError {
+			return errors.New(respJson.Error)
+		}
+	}
 
 	if err != nil {
 		return err
@@ -179,6 +205,18 @@ func GetReport(client *http.Client, documentPath string, jwtToken string, id uui
 	req.Header.Set("Authorization", "Bearer "+jwtToken)
 
 	resp, err := client.Do(req)
+
+	ct := resp.Header.Get("Content-Type")
+	if strings.Contains(ct, "application/json") {
+		var respJson response.Response
+		err = json.NewDecoder(resp.Body).Decode(&respJson)
+		if err != nil {
+			return err
+		}
+		if respJson.Status == response.StatusError {
+			return errors.New(respJson.Error)
+		}
+	}
 
 	if err != nil {
 		return err

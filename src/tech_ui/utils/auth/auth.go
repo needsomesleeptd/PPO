@@ -33,6 +33,7 @@ func SignIn(client *http.Client, login string, password string) (string, error) 
 	}
 	resp := auth_handler.ResponseSignIn{}
 	err = render.DecodeJSON(respGot.Body, &resp)
+
 	if err != nil {
 		return "", err
 	}

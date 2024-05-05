@@ -70,7 +70,7 @@ func (serv *AnotattionService) AddAnottation(anotattion *models.Markup) error {
 
 	err = serv.repo.AddAnottation(anotattion)
 	if err != nil {
-		return errors.Wrap(err, ADDING_ANNOT_ERR_STR)
+		return err
 	}
 	return err
 }
@@ -85,9 +85,6 @@ func (serv *AnotattionService) DeleteAnotattion(id uint64) error {
 
 func (serv *AnotattionService) GetAnottationByID(id uint64) (*models.Markup, error) {
 	markup, err := serv.repo.GetAnottationByID(id)
-	if err == models.ErrNotFound {
-		return markup, errors.Wrap(err, GETTING_ANNOT_ERR_STR)
-	}
 	if err != nil {
 		return markup, errors.Wrap(err, GETTING_ANNOT_ERR_STR)
 	}

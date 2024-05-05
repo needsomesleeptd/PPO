@@ -25,7 +25,7 @@ func (m *Menu) SignInMenu(opt wmenu.Opt) error {
 	fmt.Scan(&passwd)
 	jwt, err := auth_ui.SignIn(client.Client, login, passwd)
 	if err != nil {
-		fmt.Print(err.Error())
+		return err
 	}
 	m.jwt = jwt
 	payload, err := auth_utils.JWTTokenHandler{}.ParseToken(jwt, auth_service.SECRET)

@@ -51,7 +51,7 @@ func (h *UserHandler) ChangeUserPerms() http.HandlerFunc {
 		}
 		err = h.userService.ChangeUserRoleByLogin(req.Login, req.ReqRole)
 		if err != nil {
-			render.JSON(w, r, response.Error(ErrChangingRole.Error()))
+			render.JSON(w, r, response.Error(models.GetUserError(err).Error()))
 			h.logger.Error(err.Error())
 			return
 		}
@@ -64,7 +64,7 @@ func (h *UserHandler) GetAllUsers() http.HandlerFunc {
 
 		users, err := h.userService.GetAllUsers()
 		if err != nil {
-			render.JSON(w, r, response.Error(ErrGettingAllUsers.Error()))
+			render.JSON(w, r, response.Error(models.GetUserError(err).Error()))
 			h.logger.Error(err.Error())
 			return
 		}

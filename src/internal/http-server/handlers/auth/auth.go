@@ -31,7 +31,7 @@ type RequestSignIn struct {
 
 type ResponseSignIn struct {
 	Response response.Response
-	Jwt      string `json:"jwt"`
+	Jwt      string `json:"jwt,omitempty"`
 }
 
 func SignUp(authService auth_service.IAuthService) http.HandlerFunc {

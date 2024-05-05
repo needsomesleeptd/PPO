@@ -30,6 +30,9 @@ func (repo *AnotattionRepositoryAdapter) AddAnottation(markUp *models.Markup) er
 		return errors.Wrap(err, "Error in getting anotattion type")
 	}
 	tx := repo.db.Create(markUpDa)
+	if tx.Error == gorm.ErrForeignKeyViolated {
+		return models.ErrViolatingKeyAnnot
+	}
 	if tx.Error != nil {
 		return errors.Wrap(tx.Error, "Error in adding anotattion")
 	}

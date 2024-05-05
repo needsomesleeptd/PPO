@@ -6,6 +6,7 @@ import (
 	"annotater/internal/models"
 	"bytes"
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	"github.com/go-chi/render"
@@ -44,6 +45,9 @@ func ChangeUserRole(client *http.Client, login string, wantedRole models.Role, j
 	err = render.DecodeJSON(respJson.Body, &resp)
 	if err != nil {
 		return err
+	}
+	if resp.Status == response.StatusError {
+		return errors.New(resp.Error)
 	}
 	return nil
 }
