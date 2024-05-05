@@ -17,12 +17,17 @@ import (
 const (
 	LOADING_DOCUMENT_ERR_STR   = "Error in loading document"
 	CHECKING_DOCUMENT_ERR_STR  = "Error in Checking document"
-	DOCUMENT_FORMAT_ERR_STR    = "Error document loaded in wrong format"
 	REPORT_ERR_STR             = "Error in creating report"
 	DOCUMENT_META_SAVE_ERR_STR = "Error in saving metadata of a document"
 	DOCUMENT_SAVE_ERR_STR      = "Error in saving document file"
 	DOCUMENT_GET_ERR_STR       = "Error in getting document file"
 	REPORT_GET_ERR_STR         = "Error in getting report file"
+)
+
+var (
+	ErrDocumentFormat   = models.NewUserErr("error document loaded in wrong format")
+	ErrNotFoundDocument = models.NewUserErr("error not found document")
+	ErrNotFoundReport   = models.NewUserErr("error not found report")
 )
 
 type IDocumentService interface {
@@ -53,7 +58,7 @@ func (serv *DocumentService) LoadDocument(documentMetaData models.DocumentMetaDa
 
 	isValid := filesig.IsPdf(bytes.NewReader(document.DocumentBytes))
 	if !isValid {
-		return nil, errors.New(DOCUMENT_FORMAT_ERR_STR)
+		return nil, ErrDocumentFormat
 	}
 	err := serv.docRepo.AddDocument(&document)
 	if err != nil {
@@ -80,6 +85,7 @@ func (serv *DocumentService) LoadDocument(documentMetaData models.DocumentMetaDa
 
 func (serv *DocumentService) GetDocumentsByCreatorID(creatorID uint64) ([]models.DocumentMetaData, error) {
 	documents, err := serv.docMetaRepo.GetDocumentsByCreatorID(creatorID)
+
 	if err != nil {
 		return nil, err
 	}
@@ -87,6 +93,11 @@ func (serv *DocumentService) GetDocumentsByCreatorID(creatorID uint64) ([]models
 }
 func (serv *DocumentService) GetDocumentByID(ID uuid.UUID) (*models.DocumentData, error) {
 	document, err := serv.docRepo.GetDocumentByID(ID)
+
+	if err == models.ErrNotFound {
+		return nil, ErrNotFoundDocument
+	}
+
 	if err != nil {
 		return nil, errors.Wrap(err, DOCUMENT_GET_ERR_STR)
 	}
@@ -95,6 +106,9 @@ func (serv *DocumentService) GetDocumentByID(ID uuid.UUID) (*models.DocumentData
 
 func (serv *DocumentService) GetReportByID(ID uuid.UUID) (*models.ErrorReport, error) {
 	report, err := serv.reportRepo.GetDocumentByID(ID)
+	if err == models.ErrNotFound {
+		return nil, ErrNotFoundReport
+	}
 	if err != nil {
 		return nil, errors.Wrap(err, REPORT_GET_ERR_STR)
 	}

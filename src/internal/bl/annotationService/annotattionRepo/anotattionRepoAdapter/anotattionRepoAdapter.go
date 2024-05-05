@@ -55,6 +55,11 @@ func (repo *AnotattionRepositoryAdapter) DeleteAnotattion(id uint64) error { // 
 func (repo *AnotattionRepositoryAdapter) GetAnottationByID(id uint64) (*models.Markup, error) {
 	var markUpDA models_da.Markup
 	tx := repo.db.Where("id = ?", id).First(&markUpDA)
+
+	if tx.Error == gorm.ErrRecordNotFound {
+		return nil, models.ErrNotFound
+	}
+
 	if tx.Error != nil {
 		return nil, errors.Wrap(tx.Error, "Error in getting anotattion type")
 	}

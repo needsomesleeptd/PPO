@@ -13,6 +13,10 @@ const (
 	GETTING_ANNOTATTION_STR_ERR_STR = "Error in getting anotattion svc"
 )
 
+var (
+	ErrInsertingEmptyClass = models.NewUserErr("class name cannot be empty")
+)
+
 type IAnotattionTypeService interface {
 	AddAnottationType(anotattion *models.MarkupType) error
 	DeleteAnotattionType(id uint64) error
@@ -32,7 +36,10 @@ func NewAnotattionTypeService(pRep repository.IAnotattionTypeRepository) IAnotat
 	}
 }
 
-func (serv *AnotattionTypeService) AddAnottationType(anotattionType *models.MarkupType) error { //
+func (serv *AnotattionTypeService) AddAnottationType(anotattionType *models.MarkupType) error {
+	if len(anotattionType.ClassName) == 0 {
+		return ErrInsertingEmptyClass
+	}
 	err := serv.repo.AddAnottationType(anotattionType)
 	if err != nil {
 		return errors.Wrap(err, ADDING_ANNOTATTION_ERR_STR)

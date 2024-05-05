@@ -17,8 +17,8 @@ import (
 
 var (
 	ErrDecodingRequest = errors.New("broken request")
-	ErrGettingFile     = errors.New("no file added")
-	ErrGettingBbs      = errors.New("no bbs added")
+	ErrGettingFile     = errors.New("no file got")
+	ErrGettingBbs      = errors.New("no bbs got")
 	ErrAddingAnnot     = errors.New("error adding annotattion")
 	ErrGettingAnnot    = errors.New("error getting annotattion")
 	ErrDeletingAnnot   = errors.New("error deleting annotattion")
@@ -55,20 +55,20 @@ func AddAnnot(annotService service.IAnotattionService) http.HandlerFunc {
 		userID := r.Context().Value(auth_middleware.UserIDContextKey).(uint64)
 		file, _, err := r.FormFile(AnnotFileFieldName)
 		if err != nil {
-			render.JSON(w, r, response.Error(ErrGettingFile.Error())) //TODO:: add logging here
+			render.JSON(w, r, response.Error(models.GetUserError(err).Error())) //TODO:: add logging here
 			fmt.Print(err.Error())
 			return
 		}
 		pageData, err = io.ReadAll(file)
 		if err != nil {
-			render.JSON(w, r, response.Error(ErrDecodingRequest.Error())) //TODO:: add logging here
+			render.JSON(w, r, response.Error(models.GetUserError(err).Error())) //TODO:: add logging here
 			return
 		}
 		bbsString := r.FormValue(JsonBbsFieldName)
 
 		err = json.Unmarshal([]byte(bbsString), &req)
 		if err != nil {
-			render.JSON(w, r, response.Error(ErrDecodingRequest.Error())) //TODO:: add logging here
+			render.JSON(w, r, response.Error(models.GetUserError(err).Error())) //TODO:: add logging here
 			return
 		}
 		annot := models.Markup{
@@ -79,7 +79,7 @@ func AddAnnot(annotService service.IAnotattionService) http.HandlerFunc {
 		}
 		err = annotService.AddAnottation(&annot)
 		if err != nil {
-			render.JSON(w, r, response.Error(ErrAddingAnnot.Error()))
+			render.JSON(w, r, response.Error(models.GetUserError(err).Error()))
 			fmt.Print(err.Error())
 			return
 		}
@@ -99,7 +99,7 @@ func GetAnnot(annotService service.IAnotattionService) http.HandlerFunc {
 		var markUp *models.Markup
 		markUp, err = annotService.GetAnottationByID(req.ID)
 		if err != nil {
-			render.JSON(w, r, response.Error(ErrGettingAnnot.Error()))
+			render.JSON(w, r, response.Error(models.GetUserError(err).Error()))
 			return
 		}
 		resp := ResponseGetAnnot{Markup: *models_dto.ToDtoMarkup(*markUp), Response: response.OK()}
@@ -111,7 +111,7 @@ func GetAllAnnots(annotService service.IAnotattionService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		markUps, err := annotService.GetAllAnottations()
 		if err != nil {
-			render.JSON(w, r, response.Error(ErrGettingAnnot.Error()))
+			render.JSON(w, r, response.Error(models.GetUserError(err).Error()))
 			return
 		}
 		resp := ResponseGetAnnots{Markups: models_dto.ToDtoMarkupSlice(markUps), Response: response.OK()}
@@ -130,7 +130,7 @@ func GetAnnotsByUserID(annotService service.IAnotattionService) http.HandlerFunc
 
 		markUps, err := annotService.GetAnottationByUserID(userID)
 		if err != nil {
-			render.JSON(w, r, response.Error(ErrGettingAnnot.Error()))
+			render.JSON(w, r, response.Error(models.GetUserError(err).Error()))
 			return
 		}
 		resp := ResponseGetAnnots{Markups: models_dto.ToDtoMarkupSlice(markUps), Response: response.OK()}
@@ -149,7 +149,7 @@ func DeleteAnnot(annotService service.IAnotattionService) http.HandlerFunc {
 
 		err = annotService.DeleteAnotattion(req.ID)
 		if err != nil {
-			render.JSON(w, r, response.Error(ErrDeletingAnnot.Error()))
+			render.JSON(w, r, response.Error(models.GetUserError(err).Error()))
 			return
 		}
 		render.JSON(w, r, response.OK())

@@ -14,8 +14,11 @@ const (
 	ADDING_ANNOT_ERR_STR   = "Error in adding anotattion"
 	DELETING_ANNOT_ERR_STR = "Error in deleting anotattion"
 	GETTING_ANNOT_ERR_STR  = "Error in getting anotattion"
-	INVALID_BBS_ERR_STR    = "Invalid markups bounding boxes"
-	INVALID_FILE_ERR_STR   = "Invalid filetype" //checking only png files
+)
+
+var (
+	ErrBoundingBoxes   = models.NewUserErr("Invalid markups bounding boxes")
+	ErrInvalidFileType = models.NewUserErr("Invalid filetype")
 )
 
 type IAnotattionService interface {
@@ -57,12 +60,12 @@ func CheckPngFile(pngFile []byte) error {
 
 func (serv *AnotattionService) AddAnottation(anotattion *models.Markup) error {
 	if !AreBBsValid(anotattion.ErrorBB) {
-		return errors.New(INVALID_BBS_ERR_STR)
+		return ErrBoundingBoxes
 	}
 
 	err := CheckPngFile(anotattion.PageData)
 	if err != nil {
-		return errors.Wrap(err, INVALID_FILE_ERR_STR)
+		return ErrInvalidFileType //maybe user wants to get why his file is broken
 	}
 
 	err = serv.repo.AddAnottation(anotattion)
@@ -82,6 +85,9 @@ func (serv *AnotattionService) DeleteAnotattion(id uint64) error {
 
 func (serv *AnotattionService) GetAnottationByID(id uint64) (*models.Markup, error) {
 	markup, err := serv.repo.GetAnottationByID(id)
+	if err == models.ErrNotFound {
+		return markup, errors.Wrap(err, GETTING_ANNOT_ERR_STR)
+	}
 	if err != nil {
 		return markup, errors.Wrap(err, GETTING_ANNOT_ERR_STR)
 	}

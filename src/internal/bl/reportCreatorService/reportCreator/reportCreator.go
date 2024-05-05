@@ -121,7 +121,13 @@ func (cr *PDFReportCreator) CreateReport(reportID uuid.UUID, markups []models.Ma
 	// Iterate over images and texts to insert each pair on a separate page
 	for i := 0; i < len(markups); i++ {
 		imgLatex := cr.addImageLatex(imgPaths[i])
-		content += imgLatex + hashMarkUpType[markups[i].ClassLabel].Description + "\n"
+		var description string
+		if markupType, exists := hashMarkUpType[markups[i].ClassLabel]; exists {
+			description = markupType.Description
+		} else {
+			description = fmt.Sprintf("error not found description for label: %v", markups[i].ClassLabel)
+		}
+		content += imgLatex + description + "\n"
 	}
 
 	// End writing LaTeX content

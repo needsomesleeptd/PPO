@@ -66,6 +66,9 @@ func (repo *ReportDataRepositoryAdapter) GetDocumentByID(id uuid.UUID) (*models.
 	filePath := fmt.Sprintf("%s/%s", repo.root, id) + repo.fileExtension
 	fileBytes, err := os.ReadFile(filePath)
 
+	if err == os.ErrNotExist {
+		return nil, models.ErrNotFound
+	}
 	if err != nil {
 		return nil, errors.Wrap(err, "error getting file")
 	}

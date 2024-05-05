@@ -33,6 +33,9 @@ func (repo *DocumentMetaDataRepositoryAdapter) GetDocumentByID(id uuid.UUID) (*m
 	var documentDa models_da.Document
 	documentDa.ID = id
 	tx := repo.db.First(&documentDa)
+	if tx.Error == gorm.ErrRecordNotFound {
+		return nil, models.ErrNotFound
+	}
 	if tx.Error != nil {
 		return nil, errors.Wrap(tx.Error, "Error getting document by ID")
 	}
@@ -60,6 +63,7 @@ func (repo *DocumentMetaDataRepositoryAdapter) GetDocumentsByCreatorID(id uint64
 func (repo *DocumentMetaDataRepositoryAdapter) GetDocumentCountByCreator(id uint64) (int64, error) {
 	var count int64
 	tx := repo.db.Model(models_da.Document{}).Where("creator_id = ?", id).Count(&count)
+
 	if tx.Error != nil {
 		return -1, errors.Wrap(tx.Error, "Error in getting count by creator")
 	}

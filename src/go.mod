@@ -1,6 +1,6 @@
 module annotater
 
-go 1.18
+go 1.22.2
 
 require (
 	github.com/dixonwille/wmenu/v5 v5.1.0

@@ -49,6 +49,9 @@ func (repo *AnotattionTypeRepositoryAdapter) GetAnottationTypeByID(id uint64) (*
 	var markUpTypeDA models_da.MarkupType
 	markUpTypeDA.ID = id
 	tx := repo.db.Where("id = ?", id).First(&markUpTypeDA)
+	if tx.Error == gorm.ErrRecordNotFound {
+		return nil, models.ErrNotFound
+	}
 	if tx.Error != nil {
 		return nil, errors.Wrap(tx.Error, "Error in getting anotattion type db")
 	}

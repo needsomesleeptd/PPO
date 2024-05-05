@@ -62,7 +62,8 @@ func AddAnnotType(annoTypeSevice service.IAnotattionTypeService) http.HandlerFun
 		}
 		err = annoTypeSevice.AddAnottationType(&markupType)
 		if err != nil {
-			render.JSON(w, r, response.Error(ErrAddingAnnoType.Error()))
+			render.JSON(w, r, response.Error(models.GetUserError(err).Error()))
+			return
 		}
 		render.JSON(w, r, response.OK())
 	}
@@ -79,7 +80,7 @@ func GetAnnotType(annoTypeSevice service.IAnotattionTypeService) http.HandlerFun
 		var markUp *models.MarkupType
 		markUp, err = annoTypeSevice.GetAnottationTypeByID(req.ID)
 		if err != nil {
-			render.JSON(w, r, response.Error(ErrAddingAnnoType.Error()))
+			render.JSON(w, r, response.Error(models.GetUserError(err).Error()))
 			return
 		}
 		resp := ResponseGetByID{MarkupType: *models_dto.ToDtoMarkupType(*markUp), Response: response.OK()}
@@ -98,7 +99,7 @@ func GetAnnotTypesByIDs(annoTypeSevice service.IAnotattionTypeService) http.Hand
 		var markUpTypes []models.MarkupType
 		markUpTypes, err = annoTypeSevice.GetAnottationTypesByIDs(req.IDs)
 		if err != nil {
-			render.JSON(w, r, response.Error(ErrAddingAnnoType.Error()))
+			render.JSON(w, r, response.Error(models.GetUserError(err).Error()))
 			return
 		}
 		resp := ResponseGetTypes{
@@ -120,7 +121,7 @@ func GetAnnotTypesByCreatorID(annoTypeSevice service.IAnotattionTypeService) htt
 
 		markUpTypes, err := annoTypeSevice.GetAnottationTypesByUserID(userID)
 		if err != nil {
-			render.JSON(w, r, response.Error(ErrAddingAnnoType.Error()))
+			render.JSON(w, r, response.Error(models.GetUserError(err).Error()))
 			return
 		}
 		resp := ResponseGetTypes{
@@ -142,7 +143,7 @@ func DeleteAnnotType(annoTypeSevice service.IAnotattionTypeService) http.Handler
 		}
 		err = annoTypeSevice.DeleteAnotattionType(req.ID)
 		if err != nil {
-			render.JSON(w, r, response.Error(ErrDeletingAnnoType.Error()))
+			render.JSON(w, r, response.Error(models.GetUserError(err).Error()))
 			return
 		}
 		render.JSON(w, r, response.OK())
@@ -154,7 +155,7 @@ func GetAllAnnotTypes(annoTypeSevice service.IAnotattionTypeService) http.Handle
 
 		markUpTypes, err := annoTypeSevice.GetAllAnottationTypes()
 		if err != nil {
-			render.JSON(w, r, response.Error(ErrAddingAnnoType.Error()))
+			render.JSON(w, r, response.Error(models.GetUserError(err).Error()))
 			return
 		}
 		resp := ResponseGetTypes{

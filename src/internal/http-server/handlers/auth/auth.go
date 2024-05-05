@@ -6,6 +6,7 @@ import (
 	"annotater/internal/models"
 	models_dto "annotater/internal/models/dto"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/go-chi/render"
@@ -13,8 +14,7 @@ import (
 
 var (
 	ErrDecodingJson = errors.New("broken request")
-	ErrSignUp       = errors.New("signup error")
-	ErrSignIn       = errors.New("signin error")
+	ErrInternalServ = errors.New("internal server error")
 )
 
 const (
@@ -46,7 +46,8 @@ func SignUp(authService auth_service.IAuthService) http.HandlerFunc {
 		candidate := models_dto.FromDtoUser(&req.User)
 		err = authService.SignUp(&candidate)
 		if err != nil {
-			render.JSON(w, r, response.Error(ErrSignUp.Error()))
+			fmt.Print(err)
+			render.JSON(w, r, response.Error(models.GetUserError(err).Error()))
 			return
 		}
 
@@ -67,7 +68,7 @@ func SignIn(authService auth_service.IAuthService) http.HandlerFunc {
 		tokenStr, err = authService.SignIn(&candidate)
 
 		if err != nil {
-			render.JSON(w, r, response.Error(ErrSignIn.Error()))
+			render.JSON(w, r, response.Error(models.GetUserError(err).Error()))
 			return
 		}
 

@@ -9,13 +9,16 @@ import (
 )
 
 var (
-	ErrNoLogin         = errors.New("Login cannot be empty")
-	ErrNoPasswd        = errors.New("Password cannot be empty")
-	ErrLoginOccupied   = errors.New("There is a user with this login already")
-	ErrCreatingUser    = errors.New("Error in creating user")
-	ErrGeneratingToken = errors.New("Error in generating token for user")
-	ErrGeneratingHash  = errors.New("Error in generating passwdHash for user")
-	ErrHashPasswdMatch = errors.New("Error in comparing hash and passwd")
+	ErrNoLogin       = models.NewUserErr("login cannot be empty")
+	ErrNoPasswd      = models.NewUserErr("password cannot be empty")
+	ErrWrongLogin    = models.NewUserErr("wrong login")
+	ErrWrongPassword = models.NewUserErr("wrong password")
+)
+
+var (
+	ErrCreatingUser    = errors.New("error in creating user")
+	ErrGeneratingToken = errors.New("error in generating token for user")
+	ErrGeneratingHash  = errors.New("error in generating passwdHash for user")
 )
 
 const SECRET = "secret"
@@ -76,12 +79,13 @@ func (serv *AuthService) SignIn(candidate *models.User) (tokenStr string, err er
 		return "", ErrNoPasswd
 	}
 	user, err = serv.userRepo.GetUserByLogin(candidate.Login)
+
 	if err != nil {
-		return "", errors.Join(ErrLoginOccupied, err)
+		return "", errors.Join(ErrWrongLogin, err)
 	}
 	err = serv.passwordHasher.ComparePasswordhash(candidate.Password, user.Password)
 	if err != nil {
-		return "", errors.Join(ErrHashPasswdMatch, err)
+		return "", errors.Join(ErrWrongPassword, err)
 	}
 	tokenStr, err = serv.tokenizer.GenerateToken(*user, serv.key)
 	if err != nil {

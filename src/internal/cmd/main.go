@@ -81,7 +81,7 @@ func setuplog() *slog.Logger {
 }
 
 func main() {
-	db, err := gorm.Open(postgres.New(POSTGRES_CFG), &gorm.Config{})
+	db, err := gorm.Open(postgres.New(POSTGRES_CFG), &gorm.Config{TranslateError: true})
 	log := setuplog()
 
 	if err != nil {

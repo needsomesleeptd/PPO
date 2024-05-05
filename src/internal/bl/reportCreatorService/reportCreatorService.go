@@ -14,8 +14,11 @@ import (
 const (
 	LOADING_DOCUMENT_ERR_STR  = "Error in loading document"
 	CHECKING_DOCUMENT_ERR_STR = "Error in Checking document"
-	DOCUMENT_FORMAT_ERR_STR   = "Error document loaded in wrong format"
 	REPORT_ERR_STR            = "Error in creating report"
+)
+
+var (
+	ErrDocumentFormat = models.NewUserErr("Error document loaded in wrong format")
 )
 
 type IReportCreatorService interface {
@@ -40,7 +43,7 @@ func (serv *ReportCreatorService) NNMarkupsReq(document models.DocumentData) ([]
 
 	isValid := filesig.IsPdf(bytes.NewReader(document.DocumentBytes))
 	if !isValid {
-		return nil, nil, errors.New(DOCUMENT_FORMAT_ERR_STR)
+		return nil, nil, ErrDocumentFormat
 	}
 	markups, err := serv.neuralNetwork.Predict(document)
 	if err != nil {

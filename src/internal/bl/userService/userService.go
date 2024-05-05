@@ -8,7 +8,7 @@ import (
 )
 
 var ERROR_CHANGE_ROLE_STR = "Error in changing user role"
-var ERROR_GETTING_USERS = "Error in getting users"
+var ERROR_GETTING_USERS_STR = "Error in getting users"
 
 type IUserService interface {
 	ChangeUserRoleByLogin(login string, role models.Role) error
@@ -46,7 +46,7 @@ func (serv *UserService) ChangeUserRoleByLogin(login string, role models.Role) e
 func (serv *UserService) GetAllUsers() ([]models.User, error) {
 	users, err := serv.userRepo.GetAllUsers()
 	if err != nil {
-		return nil, errors.Wrap(err, ERROR_GETTING_USERS)
+		return nil, errors.Wrap(err, ERROR_GETTING_USERS_STR)
 	}
 	return users, err
 }

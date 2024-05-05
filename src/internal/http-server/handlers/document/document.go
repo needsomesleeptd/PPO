@@ -119,7 +119,7 @@ func (h *Documenthandler) GetDocumentByID() http.HandlerFunc {
 
 		document, err := h.docService.GetDocumentByID(req.ID)
 		if err != nil {
-			render.JSON(w, r, response.Error(err.Error()))
+			render.JSON(w, r, response.Error(models.GetUserError(err).Error()))
 			h.logger.Error(err.Error())
 			return
 		}
@@ -144,7 +144,7 @@ func (h *Documenthandler) GetReportByID() http.HandlerFunc {
 
 		report, err := h.docService.GetReportByID(req.ID)
 		if err != nil {
-			render.JSON(w, r, response.Error(err.Error()))
+			render.JSON(w, r, response.Error(models.GetUserError(err).Error()))
 			h.logger.Error(err.Error())
 			return
 		}
@@ -163,7 +163,7 @@ func (h *Documenthandler) GetDocumentsMetaData() http.HandlerFunc {
 		userID := r.Context().Value(auth_middleware.UserIDContextKey).(uint64)
 		documentsMetaData, err := h.docService.GetDocumentsByCreatorID(userID)
 		if err != nil {
-			render.JSON(w, r, response.Error(err.Error()))
+			render.JSON(w, r, response.Error(models.GetUserError(err).Error()))
 			h.logger.Error(err.Error())
 			return
 		}
@@ -220,7 +220,7 @@ func (h *Documenthandler) CreateReport() http.HandlerFunc {
 		var report *models.ErrorReport
 		report, err = h.docService.LoadDocument(documentMetaData, documentData)
 		if err != nil {
-			render.JSON(w, r, response.Error(ErrCreatingReport.Error()))
+			render.JSON(w, r, response.Error(models.GetUserError(err).Error()))
 			h.logger.Error(err.Error())
 			return
 		}
