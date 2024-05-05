@@ -62,6 +62,21 @@ func (mr *MockIAnotattionServiceMockRecorder) DeleteAnotattion(id interface{}) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAnotattion", reflect.TypeOf((*MockIAnotattionService)(nil).DeleteAnotattion), id)
 }
 
+// GetAllAnottations mocks base method.
+func (m *MockIAnotattionService) GetAllAnottations() ([]models.Markup, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAllAnottations")
+	ret0, _ := ret[0].([]models.Markup)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAllAnottations indicates an expected call of GetAllAnottations.
+func (mr *MockIAnotattionServiceMockRecorder) GetAllAnottations() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllAnottations", reflect.TypeOf((*MockIAnotattionService)(nil).GetAllAnottations))
+}
+
 // GetAnottationByID mocks base method.
 func (m *MockIAnotattionService) GetAnottationByID(id uint64) (*models.Markup, error) {
 	m.ctrl.T.Helper()
@@ -75,4 +90,19 @@ func (m *MockIAnotattionService) GetAnottationByID(id uint64) (*models.Markup, e
 func (mr *MockIAnotattionServiceMockRecorder) GetAnottationByID(id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAnottationByID", reflect.TypeOf((*MockIAnotattionService)(nil).GetAnottationByID), id)
+}
+
+// GetAnottationByUserID mocks base method.
+func (m *MockIAnotattionService) GetAnottationByUserID(user_id uint64) ([]models.Markup, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAnottationByUserID", user_id)
+	ret0, _ := ret[0].([]models.Markup)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAnottationByUserID indicates an expected call of GetAnottationByUserID.
+func (mr *MockIAnotattionServiceMockRecorder) GetAnottationByUserID(user_id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAnottationByUserID", reflect.TypeOf((*MockIAnotattionService)(nil).GetAnottationByUserID), user_id)
 }

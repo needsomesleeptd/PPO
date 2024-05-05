@@ -6,6 +6,7 @@ package mock_auth_utils
 
 import (
 	models "annotater/internal/models"
+	auth_utils "annotater/internal/pkg/authUtils"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
@@ -47,6 +48,21 @@ func (m *MockITokenHandler) GenerateToken(credentials models.User, key string) (
 func (mr *MockITokenHandlerMockRecorder) GenerateToken(credentials, key interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateToken", reflect.TypeOf((*MockITokenHandler)(nil).GenerateToken), credentials, key)
+}
+
+// ParseToken mocks base method.
+func (m *MockITokenHandler) ParseToken(tokenString, key string) (*auth_utils.Payload, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ParseToken", tokenString, key)
+	ret0, _ := ret[0].(*auth_utils.Payload)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ParseToken indicates an expected call of ParseToken.
+func (mr *MockITokenHandlerMockRecorder) ParseToken(tokenString, key interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ParseToken", reflect.TypeOf((*MockITokenHandler)(nil).ParseToken), tokenString, key)
 }
 
 // ValidateToken mocks base method.

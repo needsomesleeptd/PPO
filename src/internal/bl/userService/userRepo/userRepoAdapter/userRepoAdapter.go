@@ -41,8 +41,9 @@ func (repo *UserRepositoryAdapter) GetUserByLogin(login string) (*models.User, e
 }
 
 func (repo *UserRepositoryAdapter) UpdateUserByLogin(login string, user *models.User) error {
-	user_da := models_da.ToDaUser(*user)
-	tx := repo.db.Where("login = ?", login).Updates(user_da)
+	userDA := models_da.ToDaUser(*user)
+	//fmt.Print(user.Login)
+	tx := repo.db.Model(&models_da.User{}).Where("login = ?", login).Updates(userDA)
 	if tx.Error != nil {
 		return errors.Wrap(tx.Error, "Error in updating user")
 	}
@@ -64,4 +65,14 @@ func (repo *UserRepositoryAdapter) CreateUser(user *models.User) error {
 		return errors.Wrap(tx.Error, "Error in updating user")
 	}
 	return nil
+}
+
+func (repo *UserRepositoryAdapter) GetAllUsers() ([]models.User, error) {
+	var usersDA []models_da.User
+	tx := repo.db.Find(&usersDA)
+	if tx.Error != nil {
+		return nil, errors.Wrap(tx.Error, "Error in getting all users")
+	}
+	users := models_da.FromDaUserSlice(usersDA)
+	return users, nil
 }

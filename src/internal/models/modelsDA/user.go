@@ -25,6 +25,16 @@ func FromDaUser(userDa *User) models.User {
 
 }
 
+func FromDaUserSlice(usersDa []User) []models.User {
+
+	users := make([]models.User, len(usersDa))
+
+	for i, userDA := range usersDa {
+		users[i] = FromDaUser(&userDA)
+	}
+	return users
+}
+
 func ToDaUser(user models.User) *User {
 	return &User{
 		ID:       user.ID,

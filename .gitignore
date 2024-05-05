@@ -19,3 +19,10 @@
 
 # Go workspace file
 go.work
+
+*.pyc
+*__pychache__*
+../mocks/*
+*.png
+*.pdf
+*mocks
