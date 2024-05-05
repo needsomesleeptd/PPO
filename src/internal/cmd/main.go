@@ -138,6 +138,7 @@ func main() {
 	accesMiddleware := access_middleware.NewAccessMiddleware(userService)
 
 	documentHandler := document_handler.NewDocumentHandler(log, documentService)
+
 	router.Group(func(r chi.Router) { // group for which auth middleware is required
 		r.Use(authMiddleware)
 
@@ -153,26 +154,32 @@ func main() {
 		r.Route("/annotType", func(r chi.Router) {
 			r.Use(accesMiddleware.ControllersAndHigherMiddleware) // apply the desired middleware here
 
-			annoTypeLoginGroup := r.Group(nil)
-			annoTypeLoginGroup.Use(accesMiddleware.AdminOnlyMiddleware)
+			adminOnlyAnnotTypes := r.Group(nil)
+			adminOnlyAnnotTypes.Use(accesMiddleware.AdminOnlyMiddleware)
 
 			r.Post("/add", annot_type_handler.AddAnnotType(annotTypeService))
 			r.Get("/get", annot_type_handler.GetAnnotType(annotTypeService))
 
 			r.Get("/creatorID", annot_type_handler.GetAnnotTypesByCreatorID(annotTypeService))
 
-			r.Get("/gets", annot_type_handler.GetAnnotTypes(annotTypeService))
-			//not the best solution, think about it
-			annoTypeLoginGroup.Delete("/delete", annot_type_handler.DeleteAnnotType(annotTypeService))
+			r.Get("/gets", annot_type_handler.GetAnnotTypesByIDs(annotTypeService))
+
+			adminOnlyAnnotTypes.Delete("/delete", annot_type_handler.DeleteAnnotType(annotTypeService))
+			adminOnlyAnnotTypes.Get("/getsAll", annot_type_handler.GetAllAnnotTypes(annotTypeService))
 
 		})
 		//Annot
 		r.Route("/annot", func(r chi.Router) {
 			r.Use(accesMiddleware.ControllersAndHigherMiddleware)
+			adminOnlyAnnots := r.Group(nil)
+			adminOnlyAnnots.Use(accesMiddleware.AdminOnlyMiddleware)
+
 			r.Post("/add", annot_handler.AddAnnot(annotService))
 			r.Get("/get", annot_handler.GetAnnot(annotService))
 			r.Get("/creatorID", annot_handler.GetAnnotsByUserID(annotService))
-			r.Delete("/delete", annot_handler.DeleteAnnot(annotService))
+
+			adminOnlyAnnots.Delete("/delete", annot_handler.DeleteAnnot(annotService))
+			adminOnlyAnnots.Get("/getsAll", annot_handler.GetAllAnnots(annotService))
 		})
 		//user
 		r.Route("/user", func(r chi.Router) {

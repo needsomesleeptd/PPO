@@ -51,3 +51,23 @@ func (m *Menu) AddingAnotattionType(opt wmenu.Opt) error {
 	fmt.Print(response.StatusOK)
 	return nil
 }
+
+func (m *Menu) GettingAllAnottationTypes(opt wmenu.Opt) error {
+	clientEntity, ok := opt.Value.(ClientEntity)
+	if !ok {
+		log.Fatal("Could not cast option's value to ClientEntity")
+	}
+
+	markupTypes, err := annot_type_req.GetAllMarkupTypes(clientEntity.Client, m.jwt)
+	if err != nil {
+		return err
+	}
+
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetHeader([]string{"id", "name", "description"})
+	for _, markupType := range markupTypes {
+		table.Append([]string{strconv.FormatUint(markupType.ID, 10), markupType.ClassName, markupType.Description})
+	}
+	table.Render()
+	return nil
+}

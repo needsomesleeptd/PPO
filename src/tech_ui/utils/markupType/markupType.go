@@ -30,7 +30,32 @@ func GetMarkupTypesCreatorID(client *http.Client, jwtToken string) ([]models_dto
 		return nil, err
 	}
 
-	var resp annot_type_handler.ResponseGetByIDs
+	var resp annot_type_handler.ResponseGetTypes
+	err = render.DecodeJSON(respJson.Body, &resp)
+	if err != nil {
+		return nil, err
+	}
+	if resp.Response != response.OK() {
+		return nil, errors.New(resp.Error)
+	}
+	return resp.MarkupTypes, nil
+}
+
+func GetAllMarkupTypes(client *http.Client, jwtToken string) ([]models_dto.MarkupType, error) {
+	url := annotTypesUrlPath + "getsAll"
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Authorization", "Bearer "+jwtToken)
+	var respJson *http.Response
+	respJson, err = http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	var resp annot_type_handler.ResponseGetTypes
 	err = render.DecodeJSON(respJson.Body, &resp)
 	if err != nil {
 		return nil, err

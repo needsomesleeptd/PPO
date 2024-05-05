@@ -19,7 +19,7 @@ var (
 	fileFormat = ".png"
 )
 
-func DrawBbsOnMarkups(resp *annot_handler.ResponseGetByUserID, folderName string) error {
+func DrawBbsOnMarkups(resp *annot_handler.ResponseGetAnnots, folderName string) error {
 	if resp.Response != response.OK() {
 		return errors.New(resp.Response.Error)
 	}

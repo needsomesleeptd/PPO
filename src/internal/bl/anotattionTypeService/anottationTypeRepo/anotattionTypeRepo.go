@@ -8,4 +8,5 @@ type IAnotattionTypeRepository interface {
 	GetAnottationTypeByID(id uint64) (*models.MarkupType, error)
 	GetAnottationTypesByIDs(id []uint64) ([]models.MarkupType, error)
 	GetAnottationTypesByUserID(creator_id uint64) ([]models.MarkupType, error)
+	GetAllAnottationTypes() ([]models.MarkupType, error)
 }

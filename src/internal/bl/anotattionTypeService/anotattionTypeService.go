@@ -8,9 +8,9 @@ import (
 )
 
 const (
-	ADDING_ANNOTATTION_ERR_STR      = "Error in adding anotattion"
-	DELETING_ANNOTATTION_ERR_STR    = "Error in deleting anotattion"
-	GETTING_ANNOTATTION_STR_ERR_STR = "Error in deleting anotattion"
+	ADDING_ANNOTATTION_ERR_STR      = "Error in adding anotattion svc"
+	DELETING_ANNOTATTION_ERR_STR    = "Error in deleting anotattion scv"
+	GETTING_ANNOTATTION_STR_ERR_STR = "Error in getting anotattion svc"
 )
 
 type IAnotattionTypeService interface {
@@ -19,6 +19,7 @@ type IAnotattionTypeService interface {
 	GetAnottationTypeByID(id uint64) (*models.MarkupType, error)
 	GetAnottationTypesByIDs(ids []uint64) ([]models.MarkupType, error)
 	GetAnottationTypesByUserID(creator_id uint64) ([]models.MarkupType, error)
+	GetAllAnottationTypes() ([]models.MarkupType, error)
 }
 
 type AnotattionTypeService struct {
@@ -65,6 +66,14 @@ func (serv *AnotattionTypeService) GetAnottationTypesByIDs(ids []uint64) ([]mode
 
 func (serv *AnotattionTypeService) GetAnottationTypesByUserID(id uint64) ([]models.MarkupType, error) {
 	markupTypes, err := serv.repo.GetAnottationTypesByUserID(id)
+	if err != nil {
+		return nil, errors.Wrap(err, GETTING_ANNOTATTION_STR_ERR_STR)
+	}
+	return markupTypes, err
+}
+
+func (serv *AnotattionTypeService) GetAllAnottationTypes() ([]models.MarkupType, error) {
+	markupTypes, err := serv.repo.GetAllAnottationTypes()
 	if err != nil {
 		return nil, errors.Wrap(err, GETTING_ANNOTATTION_STR_ERR_STR)
 	}

@@ -22,7 +22,7 @@ func NewAnotattionTypeRepositoryAdapter(srcDB *gorm.DB) repository.IAnotattionTy
 func (repo *AnotattionTypeRepositoryAdapter) AddAnottationType(markUp *models.MarkupType) error {
 	tx := repo.db.Create(models_da.ToDaMarkupType(*markUp))
 	if tx.Error != nil {
-		return errors.Wrap(tx.Error, "Error in adding anotattion type")
+		return errors.Wrap(tx.Error, "Error in adding anotattion type db")
 	}
 	return nil
 }
@@ -38,7 +38,7 @@ func (repo *AnotattionTypeRepositoryAdapter) DeleteAnotattionType(id uint64) err
 
 		err = tx.Where("id = ?", id).Delete(&models_da.MarkupType{}).Error
 		if err != nil {
-			return errors.Wrap(tx.Error, "Error in deleting anotattion type")
+			return errors.Wrap(tx.Error, "Error in deleting anotattion type db")
 		}
 		return nil
 	})
@@ -50,7 +50,7 @@ func (repo *AnotattionTypeRepositoryAdapter) GetAnottationTypeByID(id uint64) (*
 	markUpTypeDA.ID = id
 	tx := repo.db.Where("id = ?", id).First(&markUpTypeDA)
 	if tx.Error != nil {
-		return nil, errors.Wrap(tx.Error, "Error in getting anotattion type")
+		return nil, errors.Wrap(tx.Error, "Error in getting anotattion type db")
 	}
 	markUpType := models_da.FromDaMarkupType(&markUpTypeDA)
 	return &markUpType, nil
@@ -61,7 +61,7 @@ func (repo *AnotattionTypeRepositoryAdapter) GetAnottationTypesByIDs(ids []uint6
 
 	tx := repo.db.Find(&markUpTypesDA, ids) // works only when the primary key is set and is a valid ID
 	if tx.Error != nil {
-		return nil, errors.Wrap(tx.Error, "Error in getting anotattion type")
+		return nil, errors.Wrap(tx.Error, "Error in getting anotattion type db")
 	}
 	markUpTypes := models_da.FromDaMarkupTypeSlice(markUpTypesDA)
 	return markUpTypes, nil
@@ -71,9 +71,20 @@ func (repo *AnotattionTypeRepositoryAdapter) GetAnottationTypesByUserID(creator_
 	var markUpsTypeDA []models_da.MarkupType
 	tx := repo.db.Where("creator_id = ?", creator_id).Find(&markUpsTypeDA)
 	if tx.Error != nil {
-		return nil, errors.Wrap(tx.Error, "Error in getting anotattion type")
+		return nil, errors.Wrap(tx.Error, "Error in getting anotattion type db")
 	}
-	markUps := models_da.FromDaMarkupTypeSlice(markUpsTypeDA)
+	markUpTypes := models_da.FromDaMarkupTypeSlice(markUpsTypeDA)
 
-	return markUps, nil
+	return markUpTypes, nil
+}
+
+func (repo *AnotattionTypeRepositoryAdapter) GetAllAnottationTypes() ([]models.MarkupType, error) {
+	var markUpsTypeDA []models_da.MarkupType
+	tx := repo.db.Find(&markUpsTypeDA)
+	if tx.Error != nil {
+		return nil, errors.Wrap(tx.Error, "Error in getting anotattion type db")
+	}
+	markUpTypes := models_da.FromDaMarkupTypeSlice(markUpsTypeDA)
+
+	return markUpTypes, nil
 }

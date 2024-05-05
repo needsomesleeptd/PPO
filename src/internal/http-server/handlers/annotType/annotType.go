@@ -37,7 +37,7 @@ type ResponseGetByID struct {
 	models_dto.MarkupType
 }
 
-type ResponseGetByIDs struct {
+type ResponseGetTypes struct {
 	response.Response
 	MarkupTypes []models_dto.MarkupType `json:"markupTypes"`
 }
@@ -87,7 +87,7 @@ func GetAnnotType(annoTypeSevice service.IAnotattionTypeService) http.HandlerFun
 	}
 }
 
-func GetAnnotTypes(annoTypeSevice service.IAnotattionTypeService) http.HandlerFunc {
+func GetAnnotTypesByIDs(annoTypeSevice service.IAnotattionTypeService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req RequestIDs
 		err := render.DecodeJSON(r.Body, &req)
@@ -101,7 +101,7 @@ func GetAnnotTypes(annoTypeSevice service.IAnotattionTypeService) http.HandlerFu
 			render.JSON(w, r, response.Error(ErrAddingAnnoType.Error()))
 			return
 		}
-		resp := ResponseGetByIDs{
+		resp := ResponseGetTypes{
 			MarkupTypes: models_dto.ToDtoMarkupTypeSlice(markUpTypes),
 			Response:    response.OK(),
 		}
@@ -123,7 +123,7 @@ func GetAnnotTypesByCreatorID(annoTypeSevice service.IAnotattionTypeService) htt
 			render.JSON(w, r, response.Error(ErrAddingAnnoType.Error()))
 			return
 		}
-		resp := ResponseGetByIDs{
+		resp := ResponseGetTypes{
 			MarkupTypes: models_dto.ToDtoMarkupTypeSlice(markUpTypes),
 			Response:    response.OK(),
 		}
@@ -146,5 +146,21 @@ func DeleteAnnotType(annoTypeSevice service.IAnotattionTypeService) http.Handler
 			return
 		}
 		render.JSON(w, r, response.OK())
+	}
+}
+
+func GetAllAnnotTypes(annoTypeSevice service.IAnotattionTypeService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		markUpTypes, err := annoTypeSevice.GetAllAnottationTypes()
+		if err != nil {
+			render.JSON(w, r, response.Error(ErrAddingAnnoType.Error()))
+			return
+		}
+		resp := ResponseGetTypes{
+			MarkupTypes: models_dto.ToDtoMarkupTypeSlice(markUpTypes),
+			Response:    response.OK(),
+		}
+		render.JSON(w, r, resp)
 	}
 }

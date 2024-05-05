@@ -36,7 +36,7 @@ func (m *MockIDocumentRepository) EXPECT() *MockIDocumentRepositoryMockRecorder 
 }
 
 // AddDocument mocks base method.
-func (m *MockIDocumentRepository) AddDocument(doc *models.Document) error {
+func (m *MockIDocumentRepository) AddDocument(doc *models.DocumentMetaData) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddDocument", doc)
 	ret0, _ := ret[0].(error)
@@ -64,10 +64,10 @@ func (mr *MockIDocumentRepositoryMockRecorder) DeleteDocumentByID(id interface{}
 }
 
 // GetDocumentByID mocks base method.
-func (m *MockIDocumentRepository) GetDocumentByID(id uuid.UUID) (*models.Document, error) {
+func (m *MockIDocumentRepository) GetDocumentByID(id uuid.UUID) (*models.DocumentMetaData, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDocumentByID", id)
-	ret0, _ := ret[0].(*models.Document)
+	ret0, _ := ret[0].(*models.DocumentMetaData)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

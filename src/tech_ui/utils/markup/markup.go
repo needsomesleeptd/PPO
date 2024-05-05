@@ -80,7 +80,7 @@ func AddMarkup(client *http.Client, filePath string, bbs []float32, classLabel u
 	return nil
 }
 
-func GetYourMarkups(client *http.Client, userID uint64, jwtToken string) (*annot_handler.ResponseGetByUserID, error) {
+func GetMarkupsByID(client *http.Client, userID uint64, jwtToken string) (*annot_handler.ResponseGetAnnots, error) {
 	url := annotsUrlPath + "creatorID"
 
 	req, err := http.NewRequest("GET", url, nil) // there might need to be a paginzing here
@@ -94,7 +94,32 @@ func GetYourMarkups(client *http.Client, userID uint64, jwtToken string) (*annot
 	if err != nil {
 		return nil, err
 	}
-	var resp annot_handler.ResponseGetByUserID
+	var resp annot_handler.ResponseGetAnnots
+	err = json.NewDecoder(respJson.Body).Decode(&resp)
+	if err != nil {
+		return nil, fmt.Errorf("error in request decoding json %v", err)
+	}
+	if resp.Status == response.StatusError {
+		return nil, errors.New(resp.Error)
+	}
+	return &resp, nil
+}
+
+func GetAllMarkups(client *http.Client, jwtToken string) (*annot_handler.ResponseGetAnnots, error) {
+	url := annotsUrlPath + "getsAll"
+
+	req, err := http.NewRequest("GET", url, nil) // there might need to be a paginzing here
+	if err != nil {
+		return nil, fmt.Errorf("error in request %v", err)
+	}
+
+	req.Header.Set("Authorization", "Bearer "+jwtToken)
+
+	respJson, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	var resp annot_handler.ResponseGetAnnots
 	err = json.NewDecoder(respJson.Body).Decode(&resp)
 	if err != nil {
 		return nil, fmt.Errorf("error in request decoding json %v", err)

@@ -38,12 +38,12 @@ type RequestID struct {
 	ID uint64 `json:"id"`
 }
 
-type ResponseGetByID struct {
+type ResponseGetAnnot struct {
 	response.Response
 	models_dto.Markup
 }
 
-type ResponseGetByUserID struct {
+type ResponseGetAnnots struct {
 	response.Response
 	Markups []models_dto.Markup
 }
@@ -102,7 +102,19 @@ func GetAnnot(annotService service.IAnotattionService) http.HandlerFunc {
 			render.JSON(w, r, response.Error(ErrGettingAnnot.Error()))
 			return
 		}
-		resp := ResponseGetByID{Markup: *models_dto.ToDtoMarkup(*markUp), Response: response.OK()}
+		resp := ResponseGetAnnot{Markup: *models_dto.ToDtoMarkup(*markUp), Response: response.OK()}
+		render.JSON(w, r, resp)
+	}
+}
+
+func GetAllAnnots(annotService service.IAnotattionService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		markUps, err := annotService.GetAllAnottations()
+		if err != nil {
+			render.JSON(w, r, response.Error(ErrGettingAnnot.Error()))
+			return
+		}
+		resp := ResponseGetAnnots{Markups: models_dto.ToDtoMarkupSlice(markUps), Response: response.OK()}
 		render.JSON(w, r, resp)
 	}
 }
@@ -121,7 +133,7 @@ func GetAnnotsByUserID(annotService service.IAnotattionService) http.HandlerFunc
 			render.JSON(w, r, response.Error(ErrGettingAnnot.Error()))
 			return
 		}
-		resp := ResponseGetByUserID{Markups: models_dto.ToDtoMarkupSlice(markUps), Response: response.OK()}
+		resp := ResponseGetAnnots{Markups: models_dto.ToDtoMarkupSlice(markUps), Response: response.OK()}
 		render.JSON(w, r, resp)
 	}
 }
