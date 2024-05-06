@@ -1,6 +1,7 @@
 package main
 
 import (
+<<<<<<< HEAD
 	nn_adapter "annotater/internal/bl/NN/NNAdapter"
 	nn_model_handler "annotater/internal/bl/NN/NNAdapter/NNmodelhandler"
 	annot_service "annotater/internal/bl/annotationService"
@@ -27,6 +28,10 @@ import (
 	auth_utils "annotater/internal/pkg/authUtils"
 	"fmt"
 	"log/slog"
+=======
+	models_da "annotater/internal/models/modelsDA"
+	"fmt"
+>>>>>>> lab_04
 	"net/http"
 	"os"
 	"os/signal"
@@ -34,12 +39,16 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
+<<<<<<< HEAD
 	"github.com/go-chi/chi/v5/middleware"
+=======
+>>>>>>> lab_04
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
 var (
+<<<<<<< HEAD
 	CONN_POSTGRES_STR    = "host=localhost user=andrew password=1 database=lab01db port=5432" //TODO:: export through parameters
 	POSTGRES_CFG         = postgres.Config{DSN: CONN_POSTGRES_STR}
 	MODEL_ROUTE          = "http://0.0.0.0:5000/pred"
@@ -84,15 +93,37 @@ func main() {
 	db, err := gorm.Open(postgres.New(POSTGRES_CFG), &gorm.Config{TranslateError: true})
 	log := setuplog()
 
+=======
+	CONN_POSTGRES_STR = "host=localhost user=any1 password=1 database=meetmatch_db port=5432" //TODO:: export through parameters
+	POSTGRES_CFG      = postgres.Config{DSN: CONN_POSTGRES_STR}
+	MODEL_ROUTE       = "http://0.0.0.0:5000/rec"
+	SESSION_PATH      = "localhost:6379"
+)
+
+func main() {
+	model, err := model.New(MODEL_ROUTE)
+	if err != nil {
+		fmt.Println("Error with model")
+		os.Exit(1)
+	}
+	var sessionManager *sessions.SessionManager
+	sessionManager, err = sessions.NewSessionManager(SESSION_PATH, "", 0)
+>>>>>>> lab_04
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
+<<<<<<< HEAD
 	err = migrate(db)
+=======
+	db, err := gorm.Open(postgres.New(POSTGRES_CFG), &gorm.Config{})
+	db.AutoMigrate(models_da.User{}) //TODO:: this is a hack, fix this
+>>>>>>> lab_04
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
+<<<<<<< HEAD
 
 	//auth service
 	userRepo := user_repo_adapter.NewUserRepositoryAdapter(db)
@@ -130,10 +161,21 @@ func main() {
 	//auth service
 	router := chi.NewRouter()
 	router.Use(middleware.Logger)
+=======
+	// TODO : add config
+
+	//auth service
+	userRepo := repo_adapter.NewUserRepositoryAdapter(db)
+	hasher := auth_utils.NewPasswordHashCrypto()
+	tokenHandler := auth_utils.NewJWTTokenHandler()
+	userService := auth_service.NewAuthService(userRepo, hasher, tokenHandler, auth_service.SECRET)
+	router := chi.NewRouter()
+>>>>>>> lab_04
 
 	authMiddleware := (func(h http.Handler) http.Handler {
 		return auth_middleware.JwtAuthMiddleware(h, auth_service.SECRET, tokenHandler)
 	})
+<<<<<<< HEAD
 
 	accesMiddleware := access_middleware.NewAccessMiddleware(userService)
 
@@ -193,6 +235,20 @@ func main() {
 	//auth, no middleware is required
 	router.Post("/user/SignUp", auth_handler.SignUp(authService))
 	router.Post("/user/SignIn", auth_handler.SignIn(authService))
+=======
+	router.Group(func(r chi.Router) { //group for which auth middleware is required
+		r.Use(authMiddleware)
+		r.Get("/cards", cards.New(model))
+		r.Post("/sessions", sessions_handler.SessionCreatePage(sessionManager))
+		r.Post("/sessions/{id}", sessions_handler.SessionGetData(sessionManager))
+		r.Patch("/sessions/{id}", sessions_handler.SessionAdduser(sessionManager))
+		r.Put("/sessions/{id}", sessions_handler.SessionModifyuser(sessionManager))
+	})
+
+	//auth
+	router.Post("/user/SignUp", auth_handler.SignUp(userService))
+	router.Post("/user/SignIn", auth_handler.SignIn(userService))
+>>>>>>> lab_04
 
 	done := make(chan os.Signal, 1)
 	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
