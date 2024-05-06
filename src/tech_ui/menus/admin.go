@@ -71,10 +71,10 @@ func (m *Menu) GettingAllUsers(opt wmenu.Opt) error {
 		return err
 	}
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"id", "login", "name", "role", "group"})
+	table.SetHeader([]string{"id", "login", "role"})
 
 	for _, user := range users {
-		table.Append([]string{strconv.FormatUint(user.ID, 10), user.Login, user.Role.ToString(), user.Group})
+		table.Append([]string{strconv.FormatUint(user.ID, 10), user.Login, user.Role.ToString()})
 	}
 	table.Render()
 

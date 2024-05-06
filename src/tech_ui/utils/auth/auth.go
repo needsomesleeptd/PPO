@@ -31,17 +31,16 @@ func SignIn(client *http.Client, login string, password string) (string, error) 
 	if err != nil {
 		return "", err
 	}
-	resp := auth_handler.ResponseSignIn{}
+	var resp auth_handler.ResponseSignIn
 	err = render.DecodeJSON(respGot.Body, &resp)
 
 	if err != nil {
 		return "", err
 	}
-	if resp.Response.Status == response.StatusOK {
-		return resp.Jwt, nil
-	} else {
+	if resp.Response.Status == response.StatusError {
 		return "", errors.New(resp.Response.Error)
 	}
+	return resp.Jwt, nil
 }
 
 func SignUp(client *http.Client, login string, password string) (string, error) {
