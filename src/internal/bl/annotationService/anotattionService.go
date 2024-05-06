@@ -5,6 +5,7 @@ import (
 	"annotater/internal/models"
 	"bytes"
 	"image"
+	"image/png"
 
 	"github.com/pkg/errors"
 )
@@ -13,14 +14,19 @@ const (
 	ADDING_ANNOT_ERR_STR   = "Error in adding anotattion"
 	DELETING_ANNOT_ERR_STR = "Error in deleting anotattion"
 	GETTING_ANNOT_ERR_STR  = "Error in getting anotattion"
-	INVALID_BBS_ERR_STR    = "Invalid markups bounding boxes"
-	INVALID_FILE_ERR_STR   = "Invalid filetype" //checking only png files
+)
+
+var (
+	ErrBoundingBoxes   = models.NewUserErr("Invalid markups bounding boxes")
+	ErrInvalidFileType = models.NewUserErr("Invalid filetype")
 )
 
 type IAnotattionService interface {
 	AddAnottation(anotattion *models.Markup) error
 	DeleteAnotattion(id uint64) error
 	GetAnottationByID(id uint64) (*models.Markup, error)
+	GetAnottationByUserID(user_id uint64) ([]models.Markup, error)
+	GetAllAnottations() ([]models.Markup, error)
 }
 
 type AnotattionService struct {
@@ -28,6 +34,7 @@ type AnotattionService struct {
 }
 
 func NewAnnotattionService(pRep repository.IAnotattionRepository) IAnotattionService {
+	image.RegisterFormat("png", "\x89PNG\r\n\x1a\n", png.Decode, png.DecodeConfig) //for checking file formats
 	return &AnotattionService{
 		repo: pRep,
 	}
@@ -53,17 +60,17 @@ func CheckPngFile(pngFile []byte) error {
 
 func (serv *AnotattionService) AddAnottation(anotattion *models.Markup) error {
 	if !AreBBsValid(anotattion.ErrorBB) {
-		return errors.New(INVALID_BBS_ERR_STR)
+		return ErrBoundingBoxes
 	}
 
 	err := CheckPngFile(anotattion.PageData)
 	if err != nil {
-		return errors.New(INVALID_FILE_ERR_STR)
+		return ErrInvalidFileType //maybe user wants to get why his file is broken
 	}
 
 	err = serv.repo.AddAnottation(anotattion)
 	if err != nil {
-		return errors.Wrap(err, ADDING_ANNOT_ERR_STR)
+		return err
 	}
 	return err
 }
@@ -82,4 +89,20 @@ func (serv *AnotattionService) GetAnottationByID(id uint64) (*models.Markup, err
 		return markup, errors.Wrap(err, GETTING_ANNOT_ERR_STR)
 	}
 	return markup, err
+}
+
+func (serv *AnotattionService) GetAnottationByUserID(user_id uint64) ([]models.Markup, error) {
+	markups, err := serv.repo.GetAnottationsByUserID(user_id)
+	if err != nil {
+		return nil, errors.Wrap(err, GETTING_ANNOT_ERR_STR)
+	}
+	return markups, nil
+}
+
+func (serv *AnotattionService) GetAllAnottations() ([]models.Markup, error) {
+	markups, err := serv.repo.GetAllAnottations()
+	if err != nil {
+		return nil, errors.Wrap(err, GETTING_ANNOT_ERR_STR)
+	}
+	return markups, nil
 }

@@ -19,7 +19,7 @@ func TestDetectionModel_Predict(t *testing.T) {
 		modelHandler *mock_nn_model_handler.MockIModelHandler
 	}
 	type args struct {
-		document models.Document
+		document models.DocumentMetaData
 	}
 	tests := []struct {
 		name    string
@@ -38,7 +38,7 @@ func TestDetectionModel_Predict(t *testing.T) {
 					{ErrorBB: []float32{0.3, 0.2, 0.1}, ClassLabel: 2},
 				}, nil)
 			},
-			args: args{document: models.Document{DocumentData: []byte(SOME_DOCUMENT_DATA)}},
+			args: args{document: models.DocumentMetaData{DocumentData: []byte(SOME_DOCUMENT_DATA)}},
 			want: []models.Markup{
 				{ErrorBB: []float32{0.1, 0.2, 0.3}, ClassLabel: 1},
 				{ErrorBB: []float32{0.3, 0.2, 0.1}, ClassLabel: 2},
@@ -51,7 +51,7 @@ func TestDetectionModel_Predict(t *testing.T) {
 			prepare: func(f *fields) {
 				f.modelHandler.EXPECT().GetModelResp(gomock.Any()).Return(nil, errors.New("error in model response"))
 			},
-			args:    args{document: models.Document{DocumentData: []byte(SOME_DOCUMENT_DATA)}},
+			args:    args{document: models.DocumentMetaData{DocumentData: []byte(SOME_DOCUMENT_DATA)}},
 			want:    nil,
 			wantErr: true,
 			err:     nn_adapter.ErrInModelPrediction,
@@ -61,7 +61,7 @@ func TestDetectionModel_Predict(t *testing.T) {
 			prepare: func(f *fields) {
 				f.modelHandler.EXPECT().GetModelResp(gomock.Any()).Return(nil, nil)
 			},
-			args:    args{document: models.Document{DocumentData: []byte(SOME_DOCUMENT_DATA)}},
+			args:    args{document: models.DocumentMetaData{DocumentData: []byte(SOME_DOCUMENT_DATA)}},
 			want:    nil,
 			wantErr: false,
 			err:     nil,

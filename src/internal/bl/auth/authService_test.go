@@ -181,7 +181,7 @@ func TestAuthService_SignIn(t *testing.T) {
 			},
 			want:    "",
 			wantErr: true,
-			errStr:  errors.Join(service.ErrLoginOccupied, errors.New("")),
+			errStr:  errors.Join(service.ErrWrongLogin, errors.New("")),
 		},
 		{
 			name: "CmpHash Error",

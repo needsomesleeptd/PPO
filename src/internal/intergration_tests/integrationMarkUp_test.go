@@ -52,7 +52,8 @@ func (suite *MarkupTestSuite) TestUsecaseAddMarkUp() {
 	err := anotattionService.AddAnottation(&markUp)
 	suite.Require().NoError(err)
 	suite.Assert().NoError(suite.db.Model(&models_da.Markup{}).Where("id = ?", id).Take(&gotMarkUp).Error)
-	suite.Assert().Equal(models_da.FromDaMarkup(&gotMarkUp), markUp)
+	markUpNew, _ := models_da.FromDaMarkup(&gotMarkUp)
+	suite.Assert().Equal(markUpNew, markUp)
 }
 
 func (suite *MarkupTestSuite) TestUsecaseDeleteMarkUp() {
@@ -78,7 +79,8 @@ func (suite *MarkupTestSuite) TestUsecaseGetMarkUp() {
 
 	markUp, err := anotattionService.GetAnottationByID(id)
 	suite.Require().NoError(err)
-	suite.Require().Equal(*markUp, models_da.FromDaMarkup(&markUpDa))
+	markUpNew, _ := models_da.FromDaMarkup(&markUpDa)
+	suite.Require().Equal(*markUp, markUpNew)
 }
 
 func (suite *MarkupTestSuite) TearDownTest() {
