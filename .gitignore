@@ -26,3 +26,5 @@ go.work
 *.png
 *.pdf
 *mocks
+*.log
+*.tex

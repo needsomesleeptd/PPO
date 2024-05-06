@@ -63,8 +63,8 @@ func (m *Menu) AddOptionsController(client *http.Client) {
 	m.cMenu.Option("Getting all your markup types", ClientEntity{client}, false, m.GettingAnotattionType)
 	m.cMenu.Option("Getting all your markups", ClientEntity{client}, false, m.GettingAnotattionsByUserID)
 
-	m.cMenu.Option("Get all anotattion types", ClientEntity{client}, false, m.GettingAllAnottationTypes)
-	m.cMenu.Option("Get all anotattions", ClientEntity{client}, false, m.GettingAllAnottations)
+	m.cMenu.Option("Get all markupTypes", ClientEntity{client}, false, m.GettingAllAnottationTypes)
+	m.cMenu.Option("Get all markups", ClientEntity{client}, false, m.GettingAllAnottations)
 
 	m.cMenu.Option("Exit", ClientEntity{client}, false, func(_ wmenu.Opt) error {
 		return errExit
@@ -85,10 +85,10 @@ func (m *Menu) AddOptionsAdmin(client *http.Client) {
 
 	m.aMenu.Option("Change user role", ClientEntity{client}, false, m.ChangeUserRole)
 	m.aMenu.Option("Getting all users Data", ClientEntity{client}, false, m.GettingAllUsers)
-	m.aMenu.Option("Delete the whole anotattion type", ClientEntity{client}, false, m.DeletingAnotattionType)
+	m.aMenu.Option("Delete the whole markupType", ClientEntity{client}, false, m.DeletingAnotattionType)
 
-	m.aMenu.Option("Get all anotattion types", ClientEntity{client}, false, m.GettingAllAnottationTypes)
-	m.aMenu.Option("Get all anotattions", ClientEntity{client}, false, m.GettingAllAnottations)
+	m.aMenu.Option("Get all markupTypes", ClientEntity{client}, false, m.GettingAllAnottationTypes)
+	m.aMenu.Option("Get all markups", ClientEntity{client}, false, m.GettingAllAnottations)
 
 	m.aMenu.Option("Exit", ClientEntity{client}, false, func(_ wmenu.Opt) error {
 		return errExit

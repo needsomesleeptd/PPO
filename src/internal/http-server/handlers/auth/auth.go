@@ -6,7 +6,6 @@ import (
 	"annotater/internal/models"
 	models_dto "annotater/internal/models/dto"
 	"errors"
-	"log"
 	"net/http"
 
 	"github.com/go-chi/render"
@@ -65,7 +64,6 @@ func SignIn(authService auth_service.IAuthService) http.HandlerFunc {
 		}
 		candidate := models.User{Login: req.Login, Password: req.Password}
 		tokenStr, err = authService.SignIn(&candidate)
-		log.Print(err)
 		if err != nil {
 			render.JSON(w, r, ResponseSignIn{Response: response.Error(models.GetUserError(err).Error())})
 			return
