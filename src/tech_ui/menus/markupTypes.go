@@ -40,7 +40,7 @@ func (m *Menu) AddingAnotattionType(opt wmenu.Opt) error {
 	var description string
 	var id uint64
 
-	fmt.Println("Enter the ID of the anotattion:")
+	fmt.Println("Enter the ID of the anotattion type:")
 	fmt.Scan(&id)
 
 	fmt.Println("Enter the label name for the new type:")

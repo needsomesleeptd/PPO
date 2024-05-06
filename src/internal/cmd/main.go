@@ -165,21 +165,21 @@ func main() {
 			r.Get("/gets", annot_type_handler.GetAnnotTypesByIDs(annotTypeService))
 
 			adminOnlyAnnotTypes.Delete("/delete", annot_type_handler.DeleteAnnotType(annotTypeService))
-			adminOnlyAnnotTypes.Get("/getsAll", annot_type_handler.GetAllAnnotTypes(annotTypeService))
+			r.Get("/getsAll", annot_type_handler.GetAllAnnotTypes(annotTypeService))
 
 		})
 		//Annot
 		r.Route("/annot", func(r chi.Router) {
 			r.Use(accesMiddleware.ControllersAndHigherMiddleware)
-			adminOnlyAnnots := r.Group(nil)
-			adminOnlyAnnots.Use(accesMiddleware.AdminOnlyMiddleware)
+			//adminOnlyAnnots := r.Group(nil)
+			//adminOnlyAnnots.Use(accesMiddleware.AdminOnlyMiddleware)
 
 			r.Post("/add", annot_handler.AddAnnot(annotService))
 			r.Get("/get", annot_handler.GetAnnot(annotService))
 			r.Get("/creatorID", annot_handler.GetAnnotsByUserID(annotService))
 
 			r.Delete("/delete", annot_handler.DeleteAnnot(annotService))
-			adminOnlyAnnots.Get("/getsAll", annot_handler.GetAllAnnots(annotService))
+			r.Get("/getsAll", annot_handler.GetAllAnnots(annotService))
 		})
 		//user
 		r.Route("/user", func(r chi.Router) {

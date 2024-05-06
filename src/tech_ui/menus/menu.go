@@ -62,6 +62,10 @@ func (m *Menu) AddOptionsController(client *http.Client) {
 	m.cMenu.Option("Deleting markup", ClientEntity{client}, false, m.DeletingAnotattion)
 	m.cMenu.Option("Getting all your markup types", ClientEntity{client}, false, m.GettingAnotattionType)
 	m.cMenu.Option("Getting all your markups", ClientEntity{client}, false, m.GettingAnotattionsByUserID)
+
+	m.cMenu.Option("Get all anotattion types", ClientEntity{client}, false, m.GettingAllAnottationTypes)
+	m.cMenu.Option("Get all anotattions", ClientEntity{client}, false, m.GettingAllAnottations)
+
 	m.cMenu.Option("Exit", ClientEntity{client}, false, func(_ wmenu.Opt) error {
 		return errExit
 	})
