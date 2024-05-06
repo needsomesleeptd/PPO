@@ -22,11 +22,12 @@ func (e *UserError) Unwrap() error {
 }
 
 var (
-	ErrNotFound          = NewUserErr("item not found")
-	ErrInternalServ      = NewUserErr("internal server error")
-	ErrDecodingRequest   = NewUserErr("broken request")
-	ErrDuplicateuserData = NewUserErr("user with this login already exists")
-	ErrViolatingKeyAnnot = NewUserErr("there is no annot type for this anotattion")
+	ErrNotFound            = NewUserErr("item not found")
+	ErrInternalServ        = NewUserErr("internal server error")
+	ErrDecodingRequest     = NewUserErr("broken request")
+	ErrDuplicateuserData   = NewUserErr("user with this login already exists")
+	ErrDuplicateMarkupType = NewUserErr("ID of this markup already exists")
+	ErrViolatingKeyAnnot   = NewUserErr("there is no annot type for this anotattion")
 )
 
 func GetUserError(err error) error { // error which will be returned to user

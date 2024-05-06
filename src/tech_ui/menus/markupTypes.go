@@ -38,13 +38,18 @@ func (m *Menu) AddingAnotattionType(opt wmenu.Opt) error {
 	}
 	var labelName string
 	var description string
+	var id uint64
+
+	fmt.Println("Enter the ID of the anotattion:")
+	fmt.Scan(&id)
+
 	fmt.Println("Enter the label name for the new type:")
 	fmt.Scan(&labelName)
 
 	fmt.Println("Enter the description of the new type:")
 	fmt.Scan(&description)
 
-	err := annot_type_req.AddMarkupTypeByCreatorID(clientEntity.Client, labelName, description, m.jwt)
+	err := annot_type_req.AddMarkupTypeByCreatorID(clientEntity.Client, labelName, description, m.jwt, id)
 	if err != nil {
 		return err
 	}

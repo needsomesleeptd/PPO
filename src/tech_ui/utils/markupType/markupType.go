@@ -66,10 +66,10 @@ func GetAllMarkupTypes(client *http.Client, jwtToken string) ([]models_dto.Marku
 	return resp.MarkupTypes, nil
 }
 
-func AddMarkupTypeByCreatorID(client *http.Client, labelName string, description string, jwtToken string) error {
+func AddMarkupTypeByCreatorID(client *http.Client, labelName string, description string, jwtToken string, id uint64) error {
 	url := annotTypesUrlPath + "add"
 
-	reqBody, err := json.Marshal(annot_type_handler.RequestAnnotType{Description: description, ClassName: labelName})
+	reqBody, err := json.Marshal(annot_type_handler.RequestAnnotType{Description: description, ClassName: labelName, ID: id})
 	if err != nil {
 		return err
 	}

@@ -20,6 +20,7 @@ var (
 )
 
 type RequestAnnotType struct {
+	ID          uint64 `json:"id"`
 	Description string `json:"description"`
 	ClassName   string `json:"class_name"`
 }
@@ -59,9 +60,11 @@ func AddAnnotType(annoTypeSevice service.IAnotattionTypeService) http.HandlerFun
 			CreatorID:   int(userID),
 			Description: req.Description,
 			ClassName:   req.ClassName,
+			ID:          req.ID,
 		}
 		err = annoTypeSevice.AddAnottationType(&markupType)
 		if err != nil {
+
 			render.JSON(w, r, response.Error(models.GetUserError(err).Error()))
 			return
 		}

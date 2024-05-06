@@ -37,10 +37,6 @@ type ModelRequest struct {
 }
 
 func (h *HttpModelHandler) GetModelResp(req ModelRequest) ([]models_dto.Markup, error) {
-	/*jsonReq, err := json.Marshal(req)
-	if err != nil {
-		return nil, errors.Join(ErrMarshallingRequest, err)
-	}*/
 
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)

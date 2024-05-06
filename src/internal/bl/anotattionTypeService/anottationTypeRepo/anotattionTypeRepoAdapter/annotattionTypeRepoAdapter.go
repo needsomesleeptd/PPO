@@ -21,6 +21,9 @@ func NewAnotattionTypeRepositoryAdapter(srcDB *gorm.DB) repository.IAnotattionTy
 
 func (repo *AnotattionTypeRepositoryAdapter) AddAnottationType(markUp *models.MarkupType) error {
 	tx := repo.db.Create(models_da.ToDaMarkupType(*markUp))
+	if tx.Error == gorm.ErrDuplicatedKey {
+		return models.ErrDuplicateMarkupType
+	}
 	if tx.Error != nil {
 		return errors.Wrap(tx.Error, "Error in adding anotattion type db")
 	}
@@ -52,6 +55,7 @@ func (repo *AnotattionTypeRepositoryAdapter) GetAnottationTypeByID(id uint64) (*
 	if tx.Error == gorm.ErrRecordNotFound {
 		return nil, models.ErrNotFound
 	}
+
 	if tx.Error != nil {
 		return nil, errors.Wrap(tx.Error, "Error in getting anotattion type db")
 	}
