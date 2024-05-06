@@ -3,14 +3,20 @@ package integration_tests
 //TODO:: split tests by files
 
 import (
+	nn_adapter "annotater/internal/bl/NN/NNAdapter"
+	nn_model_handler "annotater/internal/bl/NN/NNAdapter/NNmodelhandler"
+	service "annotater/internal/bl/documentService"
 	document_repo_adapter "annotater/internal/bl/documentService/documentRepo/documentRepoAdapter"
 	integration_utils "annotater/internal/intergration_tests/utils"
+	mock_nn_model_handler "annotater/internal/mocks/bl/NN/NNAdapter/NNmodelhandler"
 	"annotater/internal/models"
+	models_dto "annotater/internal/models/dto"
 	models_da "annotater/internal/models/modelsDA"
 	"bytes"
 	"log"
 	"testing"
 
+	"github.com/golang/mock/gomock"
 	"github.com/signintech/gopdf"
 	"github.com/stretchr/testify/suite"
 	"gorm.io/driver/postgres"
@@ -38,7 +44,6 @@ type UsecaseRepositoryTestSuite struct {
 }
 
 func (suite *UsecaseRepositoryTestSuite) SetupTest() {
-	// Open a new database connection for each test
 	db, err := gorm.Open(postgres.New(integration_utils.TestCfg), &gorm.Config{})
 	if err != nil {
 		log.Fatal(err)
@@ -55,7 +60,7 @@ func (suite *UsecaseRepositoryTestSuite) TearDownTest() {
 
 }
 
-//testing Document Service
+// testing Document Service
 func (suite *UsecaseRepositoryTestSuite) TestUsecaseAddDocument() {
 	var document *models.Document
 	userRepo := document_repo_adapter.NewDocumentRepositoryAdapter(suite.db)
@@ -67,20 +72,44 @@ func (suite *UsecaseRepositoryTestSuite) TestUsecaseAddDocument() {
 	suite.Require().NoError(err)
 	suite.Assert().Equal(document.DocumentData, insertedDocument.DocumentData)
 	suite.Assert().Equal(document.ID, uint64(1))
-	// interestingly time format has changed from local to UTC
+
 }
 
-func (suite *UsecaseRepositoryTestSuite) TestUsecaseAddDocumentID() {
+func (suite *UsecaseRepositoryTestSuite) TestUsecaseLoadDocument() {
 	var document *models.Document
 	userRepo := document_repo_adapter.NewDocumentRepositoryAdapter(suite.db)
+	handler := mock_nn_model_handler.NewMockIModelHandler(&gomock.Controller{})
+	nn := nn_adapter.NewDetectionModel(handler)
+	service := service.NewDocumentService(userRepo, nn)
 	id := uint64(2)
 	insertedDocument := models.Document{ID: id, DocumentData: createPDFBuffer(TEST_VALID_PDF)}
-	err := userRepo.AddDocument(&insertedDocument)
-	suite.Require().NoError(err)
+	err := service.LoadDocument(insertedDocument)
+	suite.Assert().NoError(err)
 	document, err = userRepo.GetDocumentByID(id)
 	suite.Require().NoError(err)
 	suite.Assert().Equal(document.DocumentData, insertedDocument.DocumentData)
 	suite.Assert().Equal(document.ID, id)
+}
+
+func (suite *UsecaseRepositoryTestSuite) TestUsecaseCheckDocument() {
+
+	userRepo := document_repo_adapter.NewDocumentRepositoryAdapter(suite.db)
+	ctrl := gomock.NewController(suite.T())
+	handler := mock_nn_model_handler.NewMockIModelHandler(ctrl)
+	nn := nn_adapter.NewDetectionModel(handler)
+	service := service.NewDocumentService(userRepo, nn)
+	id := uint64(2)
+	insertedDocument := models.Document{ID: id, DocumentData: createPDFBuffer(TEST_VALID_PDF)}
+	marups := []models_dto.Markup{
+		{ErrorBB: []float32{0.1, 0.2, 0.3, 0.2}, ClassLabel: 1},
+		{ErrorBB: []float32{0.3, 0.2, 0.1, 0.3}, ClassLabel: 2},
+	}
+	req := nn_model_handler.ModelRequest{DocumentData: insertedDocument.DocumentData}
+	handler.EXPECT().GetModelResp(req).Return(marups, nil)
+	res, err := service.CheckDocument(insertedDocument)
+	suite.Assert().NoError(err)
+	suite.Assert().Equal(res, models_dto.FromDtoMarkupSlice(marups))
+
 }
 
 func (suite *UsecaseRepositoryTestSuite) TestUsecaseDeleteDocumentID() {
