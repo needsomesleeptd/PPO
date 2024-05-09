@@ -17,10 +17,7 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
-<<<<<<< HEAD
 	"github.com/google/uuid"
-=======
->>>>>>> lab_04
 	"github.com/signintech/gopdf"
 	"github.com/stretchr/testify/suite"
 	"gorm.io/driver/postgres"
@@ -68,34 +65,10 @@ func (suite *UsecaseRepositoryTestSuite) TearDownTest() {
 func (suite *UsecaseRepositoryTestSuite) TestUsecaseAddDocument() {
 	var document *models.DocumentMetaData
 	userRepo := document_repo_adapter.NewDocumentRepositoryAdapter(suite.db)
-<<<<<<< HEAD
 	id := uuid.UUID{2}
 	insertedDocument := models.DocumentMetaData{ID: id, DocumentData: createPDFBuffer(TEST_VALID_PDF)}
 	err := userRepo.AddDocument(&insertedDocument)
 	suite.Require().NoError(err)
-=======
-
-	insertedDocument := models.Document{DocumentData: createPDFBuffer(TEST_VALID_PDF)}
-	err := userRepo.AddDocument(&insertedDocument)
-	suite.Require().NoError(err)
-	document, err = userRepo.GetDocumentByID(1)
-	suite.Require().NoError(err)
-	suite.Assert().Equal(document.DocumentData, insertedDocument.DocumentData)
-	suite.Assert().Equal(document.ID, uint64(1))
-
-}
-
-func (suite *UsecaseRepositoryTestSuite) TestUsecaseLoadDocument() {
-	var document *models.Document
-	userRepo := document_repo_adapter.NewDocumentRepositoryAdapter(suite.db)
-	handler := mock_nn_model_handler.NewMockIModelHandler(&gomock.Controller{})
-	nn := nn_adapter.NewDetectionModel(handler)
-	service := service.NewDocumentService(userRepo, nn)
-	id := uint64(2)
-	insertedDocument := models.Document{ID: id, DocumentData: createPDFBuffer(TEST_VALID_PDF)}
-	err := service.LoadDocument(insertedDocument)
-	suite.Assert().NoError(err)
->>>>>>> lab_04
 	document, err = userRepo.GetDocumentByID(id)
 	suite.Require().NoError(err)
 	suite.Assert().Equal(document.DocumentData, insertedDocument.DocumentData)

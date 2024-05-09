@@ -35,11 +35,7 @@ func (m *MockIDocumentService) EXPECT() *MockIDocumentServiceMockRecorder {
 }
 
 // CheckDocument mocks base method.
-<<<<<<< HEAD
 func (m *MockIDocumentService) CheckDocument(document models.DocumentMetaData) ([]models.Markup, error) {
-=======
-func (m *MockIDocumentService) CheckDocument(document models.Document) ([]models.Markup, error) {
->>>>>>> lab_04
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CheckDocument", document)
 	ret0, _ := ret[0].([]models.Markup)
