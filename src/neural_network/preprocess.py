@@ -32,6 +32,7 @@ def get_anotattions(png_page,byte_page, model):
     #print(predicts[0])
     annots = []
     for predict in predicts:
+<<<<<<< HEAD
         print(predict.boxes.xyxy.tolist(),predict.boxes.cls.tolist())
         bboxes = predict.boxes.xyxy.tolist()
         clses = predict.boxes.cls.tolist()
@@ -39,6 +40,11 @@ def get_anotattions(png_page,byte_page, model):
             for i in range(len(bboxes)):
                 annot = Anotattion(b64encode(byte_page).decode('utf-8'),bboxes[i],int(clses[i]))
                 annots.append(annot)
+=======
+        if (len(predict.boxes.cls.tolist()) !=0):
+            annot = Anotattion(b64encode(byte_page).decode('utf-8'),predict.boxes.xywh.tolist(),predict.boxes.cls.tolist())
+            annots.append(annot)
+>>>>>>> d3ec582 (It is ALIVE)
     return annots
     
 
