@@ -6,10 +6,10 @@ import (
 	"annotater/internal/models"
 	models_dto "annotater/internal/models/dto"
 	"errors"
-	"log/slog"
 	"net/http"
 
 	"github.com/go-chi/render"
+	"github.com/sirupsen/logrus"
 )
 
 var (
@@ -29,11 +29,11 @@ type ResponseGetAllUsers struct {
 }
 
 type UserHandler struct {
-	logger      *slog.Logger
+	logger      *logrus.Logger
 	userService service.IUserService
 }
 
-func NewDocumentHandler(logSrc *slog.Logger, serv service.IUserService) UserHandler {
+func NewDocumentHandler(logSrc *logrus.Logger, serv service.IUserService) UserHandler {
 	return UserHandler{
 		logger:      logSrc,
 		userService: serv,

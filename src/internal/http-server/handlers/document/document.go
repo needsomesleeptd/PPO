@@ -9,13 +9,13 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log/slog"
 	"mime/multipart"
 	"net/http"
 	"time"
 
 	"github.com/go-chi/render"
 	"github.com/google/uuid"
+	"github.com/sirupsen/logrus"
 )
 
 var (
@@ -44,7 +44,7 @@ type IDocumentHandler interface {
 }
 
 type Documenthandler struct {
-	logger     *slog.Logger
+	logger     *logrus.Logger
 	docService service.IDocumentService
 }
 
@@ -76,7 +76,7 @@ type ResponseGetReport struct {
 	MarkupTypes []models.MarkupType `json:"markupTypes"`
 }
 
-func NewDocumentHandler(logSrc *slog.Logger, serv service.IDocumentService) Documenthandler {
+func NewDocumentHandler(logSrc *logrus.Logger, serv service.IDocumentService) Documenthandler {
 	return Documenthandler{
 		logger:     logSrc,
 		docService: serv,

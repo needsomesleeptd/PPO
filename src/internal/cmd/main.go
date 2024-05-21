@@ -16,6 +16,7 @@ import (
 	report_creator "annotater/internal/bl/reportCreatorService/reportCreator"
 	service "annotater/internal/bl/userService"
 	user_repo_adapter "annotater/internal/bl/userService/userRepo/userRepoAdapter"
+	"annotater/internal/config"
 	annot_handler "annotater/internal/http-server/handlers/annot"
 	annot_type_handler "annotater/internal/http-server/handlers/annotType"
 	auth_handler "annotater/internal/http-server/handlers/auth"
@@ -26,28 +27,17 @@ import (
 	models_da "annotater/internal/models/modelsDA"
 	auth_utils "annotater/internal/pkg/authUtils"
 	"fmt"
-	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/sirupsen/logrus"
+	easy "github.com/t-tomalak/logrus-easy-formatter"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-)
-
-var (
-	CONN_POSTGRES_STR    = "host=localhost user=andrew password=1 database=lab01db port=5432" //TODO:: export through parameters
-	POSTGRES_CFG         = postgres.Config{DSN: CONN_POSTGRES_STR}
-	MODEL_ROUTE          = "http://0.0.0.0:5000/pred"
-	REPORTS_CREATOR_PATH = "../../../reportsCreator"
-	REPORTS_PATH         = "../../../reports"
-	DOCUMENTS_PATH       = "../../../documents"
-	DOCUMENTS_EXT        = ".pdf"
-	REPORTS_EXT          = ".pdf"
 )
 
 // andrew1 2
@@ -74,15 +64,45 @@ func migrate(db *gorm.DB) error {
 	return nil
 }
 
-func setuplog() *slog.Logger {
-	log := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
+func setuplog(conf *config.Config) *logrus.Logger {
 
+	log := logrus.New()
+	useFile := conf.Logger.UseFile
+	if useFile {
+		log.Printf("using file %s\n", conf.OutputFilePath)
+		f, err := os.OpenFile(conf.OutputFilePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
+		if err != nil {
+			log.Printf("Failed to create logfile %s:%s, defaulting to stderr", conf.OutputFilePath, err.Error())
+			useFile = false
+		}
+		defer f.Close()
+		log.SetOutput(f)
+	} else {
+		log.SetOutput(os.Stderr)
+	}
+
+	easyFormatter := &easy.Formatter{
+		TimestampFormat: conf.TimestampFormat,
+		LogFormat:       conf.LogFormat,
+	}
+	log.SetFormatter(easyFormatter)
+	if conf.OutputFormat == "text" {
+		log.SetFormatter(&logrus.TextFormatter{})
+	}
+	if conf.OutputFormat == "json" {
+		log.SetFormatter(&logrus.JSONFormatter{})
+	}
+	log.SetReportCaller(true)
 	return log
 }
 
 func main() {
-	db, err := gorm.Open(postgres.New(POSTGRES_CFG), &gorm.Config{TranslateError: true})
-	log := setuplog()
+
+	config := config.MustLoad()
+	postgresConStr := config.Database.GetGormConnectStr()
+	db, err := gorm.Open(postgres.New(postgres.Config{DSN: postgresConStr}), &gorm.Config{TranslateError: true})
+
+	log := setuplog(config)
 
 	if err != nil {
 		fmt.Println(err.Error())
@@ -110,15 +130,15 @@ func main() {
 
 	//document service
 	//setting up NN
-	modelhandler := nn_model_handler.NewHttpModelHandler(MODEL_ROUTE)
+	modelhandler := nn_model_handler.NewHttpModelHandler(config.Model.Route)
 	model := nn_adapter.NewDetectionModel(modelhandler)
 
-	reportCreator := report_creator.NewPDFReportCreator(REPORTS_CREATOR_PATH)
+	reportCreator := report_creator.NewPDFReportCreator(config.ReportCreatorPath)
 	reportCreatorService := rep_creator_service.NewDocumentService(model, annotTypeRepo, reportCreator)
 
-	documentStorage := doc_data_repo_adapter.NewDocumentRepositoryAdapter(DOCUMENTS_PATH, DOCUMENTS_EXT)
+	documentStorage := doc_data_repo_adapter.NewDocumentRepositoryAdapter(config.DocumentPath, config.DocumentExt)
 
-	reportStorage := rep_data_repo_adapter.NewDocumentRepositoryAdapter(REPORTS_PATH, REPORTS_EXT)
+	reportStorage := rep_data_repo_adapter.NewDocumentRepositoryAdapter(config.ReportPath, config.ReportExt)
 
 	documentRepo := document_repo_adapter.NewDocumentRepositoryAdapter(db)
 	documentService := document_service.NewDocumentService(documentRepo, documentStorage, reportStorage, reportCreatorService)
@@ -198,11 +218,11 @@ func main() {
 	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 
 	srv := &http.Server{
-		Addr:         "0.0.0.0:8080",
+		Addr:         config.Addr,
 		Handler:      router,
-		ReadTimeout:  40 * time.Second,
-		WriteTimeout: 40 * time.Second,
-		IdleTimeout:  40 * time.Second,
+		ReadTimeout:  config.ReadTimeout,
+		WriteTimeout: config.WriteTimeout,
+		IdleTimeout:  config.IdleTimeout,
 	}
 
 	go func() {
