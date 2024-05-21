@@ -25,7 +25,7 @@ http_server:
   idle_timeout: 40s
 
 logger:
-  log_level: INFO
+  log_level: WARN
   output_filepath : ../../logs/log
   use_file: false
   log_format: "[%lvl%]: %time% - %msg%"

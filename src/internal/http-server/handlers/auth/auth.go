@@ -3,7 +3,7 @@ package auth_handler
 import (
 	auth_service "annotater/internal/bl/auth"
 	response "annotater/internal/lib/api"
-	"annotater/internal/logger"
+	logger_setup "annotater/internal/logger"
 	"annotater/internal/models"
 	models_dto "annotater/internal/models/dto"
 	"errors"
@@ -52,7 +52,7 @@ func (h *AuthHandler) SignUp() http.HandlerFunc {
 		var req RequestSignUp
 		err := render.DecodeJSON(r.Body, &req)
 		if err != nil {
-			h.log.Warnf(logger.UnableToDecodeUserReqF, err)
+			h.log.Warnf(logger_setup.UnableToDecodeUserReqF, err)
 			render.JSON(w, r, response.Error(ErrDecodingJson.Error())) //TODO:: add logging here
 			return
 		}
@@ -76,7 +76,7 @@ func (h *AuthHandler) SignIn() http.HandlerFunc {
 		var tokenStr string
 		err := render.DecodeJSON(r.Body, &req)
 		if err != nil {
-			h.log.Warnf(logger.UnableToDecodeUserReqF, err)
+			h.log.Warnf(logger_setup.UnableToDecodeUserReqF, err)
 			render.JSON(w, r, ResponseSignIn{Response: response.Error(ErrDecodingJson.Error())})
 			return
 		}

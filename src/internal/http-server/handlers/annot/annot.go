@@ -69,13 +69,13 @@ func (h *AnnotHandler) AddAnnot() http.HandlerFunc {
 		file, _, err := r.FormFile(AnnotFileFieldName)
 		if err != nil {
 			render.JSON(w, r, response.Error(models.GetUserError(err).Error())) //TODO:: add logging here
-			h.log.Warn(err.Error())
+			h.log.Warn(err)
 			return
 		}
 		pageData, err = io.ReadAll(file)
 		if err != nil {
 			render.JSON(w, r, response.Error(models.GetUserError(err).Error())) //TODO:: add logging here
-			h.log.Warn(err.Error())
+			h.log.Warn(err)
 			return
 		}
 		bbsString := r.FormValue(JsonBbsFieldName)
@@ -83,7 +83,7 @@ func (h *AnnotHandler) AddAnnot() http.HandlerFunc {
 		err = json.Unmarshal([]byte(bbsString), &req)
 		if err != nil {
 			render.JSON(w, r, response.Error(models.GetUserError(err).Error())) //TODO:: add logging here
-			h.log.Warn(err.Error())
+			h.log.Warn(err)
 			return
 		}
 		annot := models.Markup{
@@ -95,7 +95,7 @@ func (h *AnnotHandler) AddAnnot() http.HandlerFunc {
 		err = h.annotService.AddAnottation(&annot)
 		if err != nil {
 			render.JSON(w, r, response.Error(models.GetUserError(err).Error()))
-			h.log.Warn(err.Error())
+			h.log.Error(err)
 			return
 		}
 		h.log.Infof("annot with class_label %v and bbs %v was successfully added", req.ClassLabel, req.ErrorBB)
@@ -110,14 +110,14 @@ func (h *AnnotHandler) GetAnnot() http.HandlerFunc {
 		err := render.DecodeJSON(r.Body, &req)
 		if err != nil {
 			render.JSON(w, r, response.Error(ErrDecodingRequest.Error())) //TODO:: add logging here
-			h.log.Warn(err.Error())
+			h.log.Warn(err)
 			return
 		}
 		var markUp *models.Markup
 		markUp, err = h.annotService.GetAnottationByID(req.ID)
 		if err != nil {
 			render.JSON(w, r, response.Error(models.GetUserError(err).Error()))
-			h.log.Warn(err.Error())
+			h.log.Warn(err)
 			return
 		}
 		resp := ResponseGetAnnot{Markup: *models_dto.ToDtoMarkup(*markUp), Response: response.OK()}
@@ -138,7 +138,7 @@ func (h *AnnotHandler) GetAllAnnots() http.HandlerFunc {
 		markUps, err := h.annotService.GetAllAnottations()
 		if err != nil {
 			render.JSON(w, r, response.Error(models.GetUserError(err).Error()))
-			h.log.Warn(err.Error())
+			h.log.Warn(err)
 			return
 		}
 		resp := ResponseGetAnnots{Markups: models_dto.ToDtoMarkupSlice(markUps), Response: response.OK()}
@@ -160,7 +160,7 @@ func (h *AnnotHandler) GetAnnotsByUserID() http.HandlerFunc {
 		markUps, err := h.annotService.GetAnottationByUserID(userID)
 		if err != nil {
 			render.JSON(w, r, response.Error(models.GetUserError(err).Error()))
-			h.log.Warn(err.Error())
+			h.log.Warn(err)
 			return
 		}
 		resp := ResponseGetAnnots{Markups: models_dto.ToDtoMarkupSlice(markUps), Response: response.OK()}
@@ -182,14 +182,14 @@ func (h *AnnotHandler) DeleteAnnot() http.HandlerFunc {
 		err := render.DecodeJSON(r.Body, &req)
 		if err != nil {
 			render.JSON(w, r, response.Error(ErrDecodingRequest.Error())) //TODO:: add logging here
-			h.log.Warn(err.Error())
+			h.log.Warn(err)
 			return
 		}
 
 		err = h.annotService.DeleteAnotattion(req.ID)
 		if err != nil {
 			render.JSON(w, r, response.Error(models.GetUserError(err).Error()))
-			h.log.Warn(err.Error())
+			h.log.Warn(err)
 			return
 		}
 		h.log.Infof("user with userID %v successfully deleted annot\n", userID)

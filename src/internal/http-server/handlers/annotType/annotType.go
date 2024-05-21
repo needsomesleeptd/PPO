@@ -3,7 +3,7 @@ package annot_type_handler
 import (
 	service "annotater/internal/bl/anotattionTypeService"
 	response "annotater/internal/lib/api"
-	"annotater/internal/logger"
+	logger_setup "annotater/internal/logger"
 	"annotater/internal/middleware/auth_middleware"
 	"annotater/internal/models"
 	models_dto "annotater/internal/models/dto"
@@ -95,7 +95,7 @@ func (h *AnnotTypeHandler) GetAnnotType() http.HandlerFunc {
 		var req RequestID
 		err := render.DecodeJSON(r.Body, &req)
 		if err != nil {
-			h.log.Warnf(logger.UnableToDecodeUserReqF, err.Error())
+			h.log.Warnf(logger_setup.UnableToDecodeUserReqF, err.Error())
 			render.JSON(w, r, response.Error(ErrBrokenRequest.Error())) //TODO:: add logging here
 			return
 		}
@@ -117,7 +117,7 @@ func (h *AnnotTypeHandler) GetAnnotTypesByIDs() http.HandlerFunc {
 		var req RequestIDs
 		err := render.DecodeJSON(r.Body, &req)
 		if err != nil {
-			h.log.Warnf(logger.UnableToDecodeUserReqF, err.Error())
+			h.log.Warnf(logger_setup.UnableToDecodeUserReqF, err.Error())
 			render.JSON(w, r, response.Error(ErrBrokenRequest.Error())) //TODO:: add logging here
 			return
 		}
@@ -141,7 +141,7 @@ func (h *AnnotTypeHandler) GetAnnotTypesByCreatorID() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID, ok := r.Context().Value(auth_middleware.UserIDContextKey).(uint64)
 		if !ok {
-			h.log.Warnf(logger.UnableToGetUserifF, auth_utils.ExtractTokenFromReq(r))
+			h.log.Warnf(logger_setup.UnableToGetUserifF, auth_utils.ExtractTokenFromReq(r))
 			render.JSON(w, r, response.Error(ErrBrokenRequest.Error())) //TODO:: add logging here
 			return
 		}
@@ -166,7 +166,7 @@ func (h *AnnotTypeHandler) DeleteAnnotType() http.HandlerFunc {
 		var req RequestID
 		err := render.DecodeJSON(r.Body, &req)
 		if err != nil {
-			h.log.Warnf(logger.UnableToDecodeUserReqF, err.Error())
+			h.log.Warnf(logger_setup.UnableToDecodeUserReqF, err.Error())
 			render.JSON(w, r, response.Error(ErrBrokenRequest.Error()))
 			return
 		}

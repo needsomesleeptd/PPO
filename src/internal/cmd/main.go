@@ -22,6 +22,7 @@ import (
 	auth_handler "annotater/internal/http-server/handlers/auth"
 	document_handler "annotater/internal/http-server/handlers/document"
 	user_handler "annotater/internal/http-server/handlers/user"
+	logger_setup "annotater/internal/logger"
 	"annotater/internal/middleware/access_middleware"
 	"annotater/internal/middleware/auth_middleware"
 	models_da "annotater/internal/models/modelsDA"
@@ -33,10 +34,9 @@ import (
 	"syscall"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/sirupsen/logrus"
-	easy "github.com/t-tomalak/logrus-easy-formatter"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 // andrew1 2
@@ -63,54 +63,23 @@ func migrate(db *gorm.DB) error {
 	return nil
 }
 
-func setuplog(conf *config.Config) *logrus.Logger {
-
-	log := logrus.New()
-	useFile := conf.Logger.UseFile
-	if useFile {
-		log.Printf("using file %s\n", conf.OutputFilePath)
-		f, err := os.OpenFile(conf.OutputFilePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
-		if err != nil {
-			log.Printf("Failed to create logfile %s:%s, defaulting to stderr", conf.OutputFilePath, err.Error())
-			useFile = false
-		}
-		defer f.Close()
-		log.SetOutput(f)
-	} else {
-		log.SetOutput(os.Stderr)
-	}
-
-	easyFormatter := &easy.Formatter{
-		TimestampFormat: conf.TimestampFormat,
-		LogFormat:       conf.LogFormat,
-	}
-
-	log.SetFormatter(easyFormatter)
-	if conf.OutputFormat == "text" {
-		log.SetFormatter(&logrus.TextFormatter{})
-	}
-	if conf.OutputFormat == "json" {
-		log.SetFormatter(&logrus.JSONFormatter{})
-	}
-	log.SetReportCaller(true)
-	return log
-}
-
 func main() {
 
 	config := config.MustLoad()
 	postgresConStr := config.Database.GetGormConnectStr()
-	db, err := gorm.Open(postgres.New(postgres.Config{DSN: postgresConStr}), &gorm.Config{TranslateError: true})
+	db, err := gorm.Open(postgres.New(postgres.Config{DSN: postgresConStr}),
+		&gorm.Config{TranslateError: true,
+			Logger: logger.Default.LogMode(logger.Silent)})
 
-	log := setuplog(config)
+	log := logger_setup.Setuplog(config)
 
 	if err != nil {
-		fmt.Println(err.Error())
+		log.Fatal(err)
 		os.Exit(1)
 	}
 	err = migrate(db)
 	if err != nil {
-		fmt.Println(err.Error())
+		log.Fatal(err)
 		os.Exit(1)
 	}
 
