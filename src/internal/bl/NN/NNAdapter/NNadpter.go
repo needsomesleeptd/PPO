@@ -5,6 +5,7 @@ import (
 	"annotater/internal/models"
 	models_dto "annotater/internal/models/dto"
 	"errors"
+	"fmt"
 )
 
 var (
@@ -23,7 +24,7 @@ func (m *DetectionModel) Predict(document models.DocumentData) ([]models.Markup,
 	req := nn_model_handler.ModelRequest{DocumentData: document.DocumentBytes}
 	markupsDto, err := m.modelHandler.GetModelResp(req)
 	if err != nil {
-		return nil, errors.Join(ErrInModelPrediction, err)
+		return nil, errors.Join(fmt.Errorf("error in getting predictions for document %v", document.ID), err)
 	}
 	markups := models_dto.FromDtoMarkupSlice(markupsDto)
 

@@ -33,7 +33,6 @@ import (
 	"syscall"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
 	"github.com/sirupsen/logrus"
 	easy "github.com/t-tomalak/logrus-easy-formatter"
 	"gorm.io/driver/postgres"
@@ -85,6 +84,7 @@ func setuplog(conf *config.Config) *logrus.Logger {
 		TimestampFormat: conf.TimestampFormat,
 		LogFormat:       conf.LogFormat,
 	}
+
 	log.SetFormatter(easyFormatter)
 	if conf.OutputFormat == "text" {
 		log.SetFormatter(&logrus.TextFormatter{})
@@ -126,11 +126,11 @@ func main() {
 
 	//annotType service
 	annotTypeRepo := annot_type_repo_adapter.NewAnotattionTypeRepositoryAdapter(db)
-	annotTypeService := annot_type_service.NewAnotattionTypeService(annotTypeRepo)
+	annotTypeService := annot_type_service.NewAnotattionTypeService(log, annotTypeRepo)
 
 	//document service
 	//setting up NN
-	modelhandler := nn_model_handler.NewHttpModelHandler(config.Model.Route)
+	modelhandler := nn_model_handler.NewHttpModelHandler(log, config.Model.Route)
 	model := nn_adapter.NewDetectionModel(modelhandler)
 
 	reportCreator := report_creator.NewPDFReportCreator(config.ReportCreatorPath)
@@ -141,23 +141,27 @@ func main() {
 	reportStorage := rep_data_repo_adapter.NewDocumentRepositoryAdapter(config.ReportPath, config.ReportExt)
 
 	documentRepo := document_repo_adapter.NewDocumentRepositoryAdapter(db)
-	documentService := document_service.NewDocumentService(documentRepo, documentStorage, reportStorage, reportCreatorService)
+	documentService := document_service.NewDocumentService(log, documentRepo, documentStorage, reportStorage, reportCreatorService)
 
 	//userService 0_0
 	userService := service.NewUserService(userRepo)
 
+	//handlers
 	userHandler := user_handler.NewDocumentHandler(log, userService)
+	documentHandler := document_handler.NewDocumentHandler(log, documentService)
+	annotHandler := annot_handler.NewAnnotHandler(log, annotService)
+	annotTypeHandler := annot_type_handler.NewAnnotTypehandler(log, annotTypeService)
+
+	authHandler := auth_handler.NewAuthHandler(log, authService)
 	//auth service
 	router := chi.NewRouter()
-	router.Use(middleware.Logger)
+	//router.Use(middleware.Logger)
 
 	authMiddleware := (func(h http.Handler) http.Handler {
 		return auth_middleware.JwtAuthMiddleware(h, auth_service.SECRET, tokenHandler)
 	})
 
 	accesMiddleware := access_middleware.NewAccessMiddleware(userService)
-
-	documentHandler := document_handler.NewDocumentHandler(log, documentService)
 
 	router.Group(func(r chi.Router) { // group for which auth middleware is required
 		r.Use(authMiddleware)
@@ -177,15 +181,15 @@ func main() {
 			adminOnlyAnnotTypes := r.Group(nil)
 			adminOnlyAnnotTypes.Use(accesMiddleware.AdminOnlyMiddleware)
 
-			r.Post("/add", annot_type_handler.AddAnnotType(annotTypeService))
-			r.Get("/get", annot_type_handler.GetAnnotType(annotTypeService))
+			r.Post("/add", annotTypeHandler.AddAnnotType())
+			r.Get("/get", annotTypeHandler.GetAnnotType())
 
-			r.Get("/creatorID", annot_type_handler.GetAnnotTypesByCreatorID(annotTypeService))
+			r.Get("/creatorID", annotTypeHandler.GetAnnotTypesByCreatorID())
 
-			r.Get("/gets", annot_type_handler.GetAnnotTypesByIDs(annotTypeService))
+			r.Get("/gets", annotTypeHandler.GetAnnotTypesByIDs())
 
-			adminOnlyAnnotTypes.Delete("/delete", annot_type_handler.DeleteAnnotType(annotTypeService))
-			r.Get("/getsAll", annot_type_handler.GetAllAnnotTypes(annotTypeService))
+			adminOnlyAnnotTypes.Delete("/delete", annotTypeHandler.DeleteAnnotType())
+			r.Get("/getsAll", annotTypeHandler.GetAllAnnotTypes())
 
 		})
 		//Annot
@@ -194,12 +198,12 @@ func main() {
 			//adminOnlyAnnots := r.Group(nil)
 			//adminOnlyAnnots.Use(accesMiddleware.AdminOnlyMiddleware)
 
-			r.Post("/add", annot_handler.AddAnnot(annotService))
-			r.Get("/get", annot_handler.GetAnnot(annotService))
-			r.Get("/creatorID", annot_handler.GetAnnotsByUserID(annotService))
+			r.Post("/add", annotHandler.AddAnnot())
+			r.Get("/get", annotHandler.GetAnnot())
+			r.Get("/creatorID", annotHandler.GetAnnotsByUserID())
 
-			r.Delete("/delete", annot_handler.DeleteAnnot(annotService))
-			r.Get("/getsAll", annot_handler.GetAllAnnots(annotService))
+			r.Delete("/delete", annotHandler.DeleteAnnot())
+			r.Get("/getsAll", annotHandler.GetAllAnnots())
 		})
 		//user
 		r.Route("/user", func(r chi.Router) {
@@ -211,8 +215,8 @@ func main() {
 	})
 
 	//auth, no middleware is required
-	router.Post("/user/SignUp", auth_handler.SignUp(authService))
-	router.Post("/user/SignIn", auth_handler.SignIn(authService))
+	router.Post("/user/SignUp", authHandler.SignUp())
+	router.Post("/user/SignIn", authHandler.SignIn())
 
 	done := make(chan os.Signal, 1)
 	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)

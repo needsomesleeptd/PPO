@@ -4,6 +4,8 @@ import (
 	"annotater/internal/models"
 	"errors"
 	"fmt"
+	"net/http"
+	"strings"
 	"time"
 
 	errors2 "github.com/pkg/errors"
@@ -84,4 +86,10 @@ func (hasher JWTTokenHandler) ParseToken(tokenString string, key string) (*Paylo
 	}
 
 	return payload, nil
+}
+func ExtractTokenFromReq(r *http.Request) string {
+
+	token := r.Header.Get("Authorization")
+	token = strings.TrimPrefix(token, "Bearer ")
+	return token
 }

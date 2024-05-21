@@ -3,6 +3,7 @@ package service
 import (
 	repository "annotater/internal/bl/userService/userRepo"
 	"annotater/internal/models"
+	"fmt"
 
 	"github.com/pkg/errors"
 )
@@ -33,12 +34,12 @@ func (serv *UserService) IsRolePermitted(currRole models.Role, reqRole models.Ro
 func (serv *UserService) ChangeUserRoleByLogin(login string, role models.Role) error { // Для создания админа, должна быть миграция бд на старте приложения
 	user, err := serv.userRepo.GetUserByLogin(login)
 	if err != nil {
-		return errors.Wrap(err, ERROR_CHANGE_ROLE_STR)
+		return errors.Wrap(err, fmt.Sprintf("error changing user role with login %v wanted role %v", login, role))
 	}
 	user.Role = role
 	err = serv.userRepo.UpdateUserByLogin(login, user)
 	if err != nil {
-		return errors.Wrap(err, ERROR_CHANGE_ROLE_STR)
+		return errors.Wrap(err, fmt.Sprintf("error changing user role with login %v wanted role %v", login, role))
 	}
 	return err
 }

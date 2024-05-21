@@ -46,15 +46,16 @@ func (h *UserHandler) ChangeUserPerms() http.HandlerFunc {
 		err := render.DecodeJSON(r.Body, &req)
 		if err != nil {
 			render.JSON(w, r, response.Error(ErrDecodingJson.Error()))
-			h.logger.Error(err.Error())
+			h.logger.Warn(err.Error())
 			return
 		}
 		err = h.userService.ChangeUserRoleByLogin(req.Login, req.ReqRole)
 		if err != nil {
 			render.JSON(w, r, response.Error(models.GetUserError(err).Error()))
-			h.logger.Error(err.Error())
+			h.logger.Warn(err.Error())
 			return
 		}
+		h.logger.Infof("successfully changed role of user with login %v to to role %v\n", req.Login, req.ReqRole)
 		render.JSON(w, r, response.OK())
 	}
 }
@@ -65,11 +66,12 @@ func (h *UserHandler) GetAllUsers() http.HandlerFunc {
 		users, err := h.userService.GetAllUsers()
 		if err != nil {
 			render.JSON(w, r, response.Error(models.GetUserError(err).Error()))
-			h.logger.Error(err.Error())
+			h.logger.Warn(err.Error())
 			return
 		}
 		usersDTO := models_dto.ToDtoUserSlice(users)
 		resp := ResponseGetAllUsers{response.OK(), usersDTO}
+		h.logger.Infof("succesfully got all users\n")
 		render.JSON(w, r, resp)
 	}
 }

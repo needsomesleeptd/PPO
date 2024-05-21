@@ -3,6 +3,7 @@ package document_handler
 import (
 	service "annotater/internal/bl/documentService"
 	response "annotater/internal/lib/api"
+	"annotater/internal/logger"
 	"annotater/internal/middleware/auth_middleware"
 	"annotater/internal/models"
 	pdf_utils "annotater/internal/pkg/pdfUtils"
@@ -113,6 +114,7 @@ func (h *Documenthandler) GetDocumentByID() http.HandlerFunc {
 		var req RequestID
 		err := render.DecodeJSON(r.Body, &req)
 		if err != nil {
+			h.logger.Warnf(logger.UnableToDecodeUserReqF, err)
 			render.JSON(w, r, response.Error(ErrBrokenRequest.Error()))
 			return
 		}
@@ -120,13 +122,13 @@ func (h *Documenthandler) GetDocumentByID() http.HandlerFunc {
 		document, err := h.docService.GetDocumentByID(req.ID)
 		if err != nil {
 			render.JSON(w, r, response.Error(models.GetUserError(err).Error()))
-			h.logger.Error(err.Error())
+			h.logger.Warn(err.Error())
 			return
 		}
 		err = writeBytesIntoResponse(w, document.DocumentBytes)
 		if err != nil {
 			render.JSON(w, r, response.Error(ErrSendingFile.Error()))
-			h.logger.Error(err.Error())
+			h.logger.Warn(err.Error())
 			return
 		}
 		render.JSON(w, r, response.OK())
@@ -138,6 +140,7 @@ func (h *Documenthandler) GetReportByID() http.HandlerFunc {
 		var req RequestID
 		err := render.DecodeJSON(r.Body, &req)
 		if err != nil {
+			h.logger.Warnf(logger.UnableToDecodeUserReqF, err)
 			render.JSON(w, r, response.Error(ErrBrokenRequest.Error()))
 			return
 		}
@@ -145,13 +148,13 @@ func (h *Documenthandler) GetReportByID() http.HandlerFunc {
 		report, err := h.docService.GetReportByID(req.ID)
 		if err != nil {
 			render.JSON(w, r, response.Error(models.GetUserError(err).Error()))
-			h.logger.Error(err.Error())
+			h.logger.Warn(err.Error())
 			return
 		}
 		err = writeBytesIntoResponse(w, report.ReportData)
 		if err != nil {
 			render.JSON(w, r, response.Error(ErrSendingFile.Error()))
-			h.logger.Error(err.Error())
+			h.logger.Warn(err.Error())
 			return
 		}
 		render.JSON(w, r, response.OK())
@@ -164,7 +167,7 @@ func (h *Documenthandler) GetDocumentsMetaData() http.HandlerFunc {
 		documentsMetaData, err := h.docService.GetDocumentsByCreatorID(userID)
 		if err != nil {
 			render.JSON(w, r, response.Error(models.GetUserError(err).Error()))
-			h.logger.Error(err.Error())
+			h.logger.Warn(err.Error())
 			return
 		}
 		resp := ResponseGettingMetaData{Response: response.OK(), DocumentsMetaData: documentsMetaData}
@@ -179,13 +182,13 @@ func (h *Documenthandler) CreateReport() http.HandlerFunc {
 		err := r.ParseMultipartForm(32 << 20)
 		if err != nil {
 			render.JSON(w, r, response.Error(ErrGettingFile.Error()))
-			h.logger.Error(err.Error())
+			h.logger.Warn(err.Error())
 			return
 		}
 		file, handler, err := r.FormFile(FILE_HEADER_KEY)
 		if err != nil {
 			render.JSON(w, r, response.Error(ErrGettingFile.Error()))
-			h.logger.Error(err.Error())
+			h.logger.Warn(err.Error())
 		}
 
 		var fileBytes []byte
@@ -193,7 +196,7 @@ func (h *Documenthandler) CreateReport() http.HandlerFunc {
 
 		if err != nil {
 			render.JSON(w, r, response.Error(err.Error()))
-			h.logger.Error(err.Error())
+			h.logger.Warn(err.Error())
 			return
 		}
 
@@ -201,7 +204,7 @@ func (h *Documenthandler) CreateReport() http.HandlerFunc {
 		pagesCount, err = pdf_utils.GetPdfPageCount(fileBytes)
 
 		if err != nil {
-			h.logger.Error(errors.Join(err, ErrGettingPageCount).Error())
+			h.logger.Warn(errors.Join(err, ErrGettingPageCount).Error())
 			pagesCount = -1
 		}
 
@@ -221,7 +224,7 @@ func (h *Documenthandler) CreateReport() http.HandlerFunc {
 		report, err = h.docService.LoadDocument(documentMetaData, documentData)
 		if err != nil {
 			render.JSON(w, r, response.Error(models.GetUserError(err).Error()))
-			h.logger.Error(err.Error())
+			h.logger.Warn(err.Error())
 			return
 		}
 
@@ -230,7 +233,7 @@ func (h *Documenthandler) CreateReport() http.HandlerFunc {
 		_, err = w.Write(report.ReportData)
 		if err != nil {
 			render.JSON(w, r, response.Error(ErrCreatingReport.Error()))
-			h.logger.Error(err.Error())
+			h.logger.Warn(err.Error())
 			return
 		}
 

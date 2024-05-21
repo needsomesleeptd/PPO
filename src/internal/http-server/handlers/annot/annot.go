@@ -6,13 +6,14 @@ import (
 	"annotater/internal/middleware/auth_middleware"
 	"annotater/internal/models"
 	models_dto "annotater/internal/models/dto"
+	auth_utils "annotater/internal/pkg/authUtils"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 
 	"github.com/go-chi/render"
+	"github.com/sirupsen/logrus"
 )
 
 var (
@@ -48,7 +49,19 @@ type ResponseGetAnnots struct {
 	Markups []models_dto.Markup
 }
 
-func AddAnnot(annotService service.IAnotattionService) http.HandlerFunc {
+func NewAnnotHandler(logSrc *logrus.Logger, servSrc service.IAnotattionService) AnnotHandler {
+	return AnnotHandler{
+		log:          logSrc,
+		annotService: servSrc,
+	}
+}
+
+type AnnotHandler struct {
+	log          *logrus.Logger
+	annotService service.IAnotattionService
+}
+
+func (h *AnnotHandler) AddAnnot() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req RequestAddAnnot
 		var pageData []byte
@@ -56,12 +69,13 @@ func AddAnnot(annotService service.IAnotattionService) http.HandlerFunc {
 		file, _, err := r.FormFile(AnnotFileFieldName)
 		if err != nil {
 			render.JSON(w, r, response.Error(models.GetUserError(err).Error())) //TODO:: add logging here
-			fmt.Print(err.Error())
+			h.log.Warn(err.Error())
 			return
 		}
 		pageData, err = io.ReadAll(file)
 		if err != nil {
 			render.JSON(w, r, response.Error(models.GetUserError(err).Error())) //TODO:: add logging here
+			h.log.Warn(err.Error())
 			return
 		}
 		bbsString := r.FormValue(JsonBbsFieldName)
@@ -69,6 +83,7 @@ func AddAnnot(annotService service.IAnotattionService) http.HandlerFunc {
 		err = json.Unmarshal([]byte(bbsString), &req)
 		if err != nil {
 			render.JSON(w, r, response.Error(models.GetUserError(err).Error())) //TODO:: add logging here
+			h.log.Warn(err.Error())
 			return
 		}
 		annot := models.Markup{
@@ -77,81 +92,107 @@ func AddAnnot(annotService service.IAnotattionService) http.HandlerFunc {
 			ClassLabel: req.ClassLabel,
 			CreatorID:  userID,
 		}
-		err = annotService.AddAnottation(&annot)
+		err = h.annotService.AddAnottation(&annot)
 		if err != nil {
 			render.JSON(w, r, response.Error(models.GetUserError(err).Error()))
-			fmt.Print(err.Error())
+			h.log.Warn(err.Error())
 			return
 		}
+		h.log.Infof("annot with class_label %v and bbs %v was successfully added", req.ClassLabel, req.ErrorBB)
 		render.JSON(w, r, response.OK())
 	}
 
 }
 
-func GetAnnot(annotService service.IAnotattionService) http.HandlerFunc {
+func (h *AnnotHandler) GetAnnot() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req RequestID
 		err := render.DecodeJSON(r.Body, &req)
 		if err != nil {
 			render.JSON(w, r, response.Error(ErrDecodingRequest.Error())) //TODO:: add logging here
+			h.log.Warn(err.Error())
 			return
 		}
 		var markUp *models.Markup
-		markUp, err = annotService.GetAnottationByID(req.ID)
+		markUp, err = h.annotService.GetAnottationByID(req.ID)
 		if err != nil {
 			render.JSON(w, r, response.Error(models.GetUserError(err).Error()))
+			h.log.Warn(err.Error())
 			return
 		}
 		resp := ResponseGetAnnot{Markup: *models_dto.ToDtoMarkup(*markUp), Response: response.OK()}
+		h.log.Infof("annot with ID %v was successfully fetched", req.ID)
 		render.JSON(w, r, resp)
 	}
 }
 
-func GetAllAnnots(annotService service.IAnotattionService) http.HandlerFunc {
+func (h *AnnotHandler) GetAllAnnots() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		markUps, err := annotService.GetAllAnottations()
+		userID, ok := r.Context().Value(auth_middleware.UserIDContextKey).(uint64)
+		if !ok {
+			render.JSON(w, r, response.Error(ErrDecodingRequest.Error())) //TODO:: add logging here
+			h.log.Warn("cannot get userIDfrom jwt in middleware")
+			return
+		}
+
+		markUps, err := h.annotService.GetAllAnottations()
 		if err != nil {
 			render.JSON(w, r, response.Error(models.GetUserError(err).Error()))
+			h.log.Warn(err.Error())
 			return
 		}
 		resp := ResponseGetAnnots{Markups: models_dto.ToDtoMarkupSlice(markUps), Response: response.OK()}
+		h.log.Infof("user with userID %v successfully got all annots\n", userID)
 		render.JSON(w, r, resp)
 	}
 }
 
-func GetAnnotsByUserID(annotService service.IAnotattionService) http.HandlerFunc {
+func (h *AnnotHandler) GetAnnotsByUserID() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		userID, ok := r.Context().Value(auth_middleware.UserIDContextKey).(uint64)
 		if !ok {
 			render.JSON(w, r, response.Error(ErrDecodingRequest.Error())) //TODO:: add logging here
+			h.log.Warnf("cannot get userID from jwt %v in middleware", auth_utils.ExtractTokenFromReq(r))
 			return
 		}
 
-		markUps, err := annotService.GetAnottationByUserID(userID)
+		markUps, err := h.annotService.GetAnottationByUserID(userID)
 		if err != nil {
 			render.JSON(w, r, response.Error(models.GetUserError(err).Error()))
+			h.log.Warn(err.Error())
 			return
 		}
 		resp := ResponseGetAnnots{Markups: models_dto.ToDtoMarkupSlice(markUps), Response: response.OK()}
+		h.log.Infof("user with userID %v successfully got all his annots\n", userID)
 		render.JSON(w, r, resp)
 	}
 }
 
-func DeleteAnnot(annotService service.IAnotattionService) http.HandlerFunc {
+func (h *AnnotHandler) DeleteAnnot() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		userID, ok := r.Context().Value(auth_middleware.UserIDContextKey).(uint64)
+		if !ok {
+			render.JSON(w, r, response.Error(ErrDecodingRequest.Error())) //TODO:: add logging here
+			h.log.Warn("cannot get userIDfrom jwt in middleware")
+			return
+		}
+
 		var req RequestID
 		err := render.DecodeJSON(r.Body, &req)
 		if err != nil {
 			render.JSON(w, r, response.Error(ErrDecodingRequest.Error())) //TODO:: add logging here
+			h.log.Warn(err.Error())
 			return
 		}
 
-		err = annotService.DeleteAnotattion(req.ID)
+		err = h.annotService.DeleteAnotattion(req.ID)
 		if err != nil {
 			render.JSON(w, r, response.Error(models.GetUserError(err).Error()))
+			h.log.Warn(err.Error())
 			return
 		}
+		h.log.Infof("user with userID %v successfully deleted annot\n", userID)
 		render.JSON(w, r, response.OK())
 	}
 }

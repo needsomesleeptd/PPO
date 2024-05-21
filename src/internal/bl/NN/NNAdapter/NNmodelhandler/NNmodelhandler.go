@@ -7,6 +7,8 @@ import (
 	"errors"
 	"mime/multipart"
 	"net/http"
+
+	"github.com/sirupsen/logrus"
 )
 
 var (
@@ -26,10 +28,11 @@ type IModelHandler interface {
 
 type HttpModelHandler struct {
 	Url string
+	log *logrus.Logger
 }
 
-func NewHttpModelHandler(url string) IModelHandler {
-	return &HttpModelHandler{Url: url}
+func NewHttpModelHandler(logSrc *logrus.Logger, url string) IModelHandler {
+	return &HttpModelHandler{log: logSrc, Url: url}
 }
 
 type ModelRequest struct {
@@ -60,6 +63,7 @@ func (h *HttpModelHandler) GetModelResp(req ModelRequest) ([]models_dto.Markup, 
 
 	jsonResp, err := http.DefaultClient.Do(reqModel)
 	if err != nil {
+		h.log.Errorf("error getting model response: %v\n", err)
 		return nil, errors.Join(ErrGettingResponse, err)
 	}
 

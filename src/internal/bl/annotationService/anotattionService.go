@@ -11,9 +11,12 @@ import (
 )
 
 const (
-	ADDING_ANNOT_ERR_STR   = "Error in adding anotattion"
-	DELETING_ANNOT_ERR_STR = "Error in deleting anotattion"
-	GETTING_ANNOT_ERR_STR  = "Error in getting anotattion"
+	ADDING_ANNOT_ERR_STRF          = "error in adding anotattion svc  id %v"
+	ADDING_ANNOT_ERR_CREATOR_STRF  = "error in adding anotattion svc  with creator id %v"
+	GETTING_ANNOT_ERR_CREATOR_STRF = "error in getting anotattion svc  with creator id %v"
+	DELETING_ANNOT_ERR_STRF        = "error in deleting anotattion svc  id %v"
+	GETTING_ANNOT_ERR_STRF         = "error in getting anotattion svc id %v"
+	GETTING_ALL_ANNOT_ERR_STR      = "error in getting all anotattions svc"
 )
 
 var (
@@ -25,7 +28,7 @@ type IAnotattionService interface {
 	AddAnottation(anotattion *models.Markup) error
 	DeleteAnotattion(id uint64) error
 	GetAnottationByID(id uint64) (*models.Markup, error)
-	GetAnottationByUserID(user_id uint64) ([]models.Markup, error)
+	GetAnottationByUserID(userID uint64) ([]models.Markup, error)
 	GetAllAnottations() ([]models.Markup, error)
 }
 
@@ -60,17 +63,17 @@ func CheckPngFile(pngFile []byte) error {
 
 func (serv *AnotattionService) AddAnottation(anotattion *models.Markup) error {
 	if !AreBBsValid(anotattion.ErrorBB) {
-		return ErrBoundingBoxes
+		return errors.Wrapf(ErrBoundingBoxes, ADDING_ANNOT_ERR_CREATOR_STRF, anotattion.CreatorID)
 	}
 
 	err := CheckPngFile(anotattion.PageData)
 	if err != nil {
-		return ErrInvalidFileType //maybe user wants to get why his file is broken
+		return errors.Wrapf(ErrInvalidFileType, ADDING_ANNOT_ERR_CREATOR_STRF, anotattion.CreatorID) //maybe user wants to get why his file is broken
 	}
 
 	err = serv.repo.AddAnottation(anotattion)
 	if err != nil {
-		return err
+		return errors.Wrapf(err, ADDING_ANNOT_ERR_CREATOR_STRF, anotattion.CreatorID)
 	}
 	return err
 }
@@ -78,7 +81,7 @@ func (serv *AnotattionService) AddAnottation(anotattion *models.Markup) error {
 func (serv *AnotattionService) DeleteAnotattion(id uint64) error {
 	err := serv.repo.DeleteAnotattion(id)
 	if err != nil {
-		return errors.Wrap(err, DELETING_ANNOT_ERR_STR)
+		return errors.Wrapf(err, DELETING_ANNOT_ERR_STRF, id)
 	}
 	return err
 }
@@ -86,15 +89,15 @@ func (serv *AnotattionService) DeleteAnotattion(id uint64) error {
 func (serv *AnotattionService) GetAnottationByID(id uint64) (*models.Markup, error) {
 	markup, err := serv.repo.GetAnottationByID(id)
 	if err != nil {
-		return markup, errors.Wrap(err, GETTING_ANNOT_ERR_STR)
+		return markup, errors.Wrapf(err, GETTING_ANNOT_ERR_STRF, id)
 	}
 	return markup, err
 }
 
-func (serv *AnotattionService) GetAnottationByUserID(user_id uint64) ([]models.Markup, error) {
-	markups, err := serv.repo.GetAnottationsByUserID(user_id)
+func (serv *AnotattionService) GetAnottationByUserID(userID uint64) ([]models.Markup, error) {
+	markups, err := serv.repo.GetAnottationsByUserID(userID)
 	if err != nil {
-		return nil, errors.Wrap(err, GETTING_ANNOT_ERR_STR)
+		return nil, errors.Wrapf(err, GETTING_ANNOT_ERR_CREATOR_STRF, userID)
 	}
 	return markups, nil
 }
@@ -102,7 +105,7 @@ func (serv *AnotattionService) GetAnottationByUserID(user_id uint64) ([]models.M
 func (serv *AnotattionService) GetAllAnottations() ([]models.Markup, error) {
 	markups, err := serv.repo.GetAllAnottations()
 	if err != nil {
-		return nil, errors.Wrap(err, GETTING_ANNOT_ERR_STR)
+		return nil, errors.Wrap(err, GETTING_ALL_ANNOT_ERR_STR)
 	}
 	return markups, nil
 }
