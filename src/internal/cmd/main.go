@@ -87,11 +87,11 @@ func main() {
 	userRepo := user_repo_adapter.NewUserRepositoryAdapter(db)
 	hasher := auth_utils.NewPasswordHashCrypto()
 	tokenHandler := auth_utils.NewJWTTokenHandler()
-	authService := auth_service.NewAuthService(userRepo, hasher, tokenHandler, auth_service.SECRET)
+	authService := auth_service.NewAuthService(log, userRepo, hasher, tokenHandler, auth_service.SECRET)
 
 	//annot service
 	annotRepo := annot_repo_adapter.NewAnotattionRepositoryAdapter(db)
-	annotService := annot_service.NewAnnotattionService(annotRepo)
+	annotService := annot_service.NewAnnotattionService(log, annotRepo)
 
 	//annotType service
 	annotTypeRepo := annot_type_repo_adapter.NewAnotattionTypeRepositoryAdapter(db)
@@ -103,7 +103,7 @@ func main() {
 	model := nn_adapter.NewDetectionModel(modelhandler)
 
 	reportCreator := report_creator.NewPDFReportCreator(config.ReportCreatorPath)
-	reportCreatorService := rep_creator_service.NewDocumentService(model, annotTypeRepo, reportCreator)
+	reportCreatorService := rep_creator_service.NewDocumentService(log, model, annotTypeRepo, reportCreator)
 
 	documentStorage := doc_data_repo_adapter.NewDocumentRepositoryAdapter(config.DocumentPath, config.DocumentExt)
 
@@ -113,7 +113,7 @@ func main() {
 	documentService := document_service.NewDocumentService(log, documentRepo, documentStorage, reportStorage, reportCreatorService)
 
 	//userService 0_0
-	userService := service.NewUserService(userRepo)
+	userService := service.NewUserService(log, userRepo)
 
 	//handlers
 	userHandler := user_handler.NewDocumentHandler(log, userService)

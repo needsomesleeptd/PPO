@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 )
 
 var ERROR_CHANGE_ROLE_STR = "Error in changing user role"
@@ -18,11 +19,13 @@ type IUserService interface {
 }
 
 type UserService struct {
+	logger   *logrus.Logger
 	userRepo repository.IUserRepository
 }
 
-func NewUserService(repo repository.IUserRepository) IUserService {
+func NewUserService(loggerSrc *logrus.Logger, repo repository.IUserRepository) IUserService {
 	return &UserService{
+		logger:   loggerSrc,
 		userRepo: repo,
 	}
 }
@@ -34,20 +37,47 @@ func (serv *UserService) IsRolePermitted(currRole models.Role, reqRole models.Ro
 func (serv *UserService) ChangeUserRoleByLogin(login string, role models.Role) error { // Для создания админа, должна быть миграция бд на старте приложения
 	user, err := serv.userRepo.GetUserByLogin(login)
 	if err != nil {
+		serv.logger.WithFields(
+			logrus.Fields{
+				"src":   "UserService.ChangeUserRoleByLogin.GetUser",
+				"login": login,
+				"role":  role.ToString()}).
+			Warn(err)
 		return errors.Wrap(err, fmt.Sprintf("error changing user role with login %v wanted role %v", login, role))
 	}
 	user.Role = role
 	err = serv.userRepo.UpdateUserByLogin(login, user)
 	if err != nil {
+		serv.logger.WithFields(
+			logrus.Fields{
+				"src":   "UserService.ChangeUserRoleByLogin.UpdateUser",
+				"login": login,
+				"role":  role.ToString()}).
+			Warn(err)
 		return errors.Wrap(err, fmt.Sprintf("error changing user role with login %v wanted role %v", login, role))
 	}
+	serv.logger.WithFields(
+		logrus.Fields{
+			"src":   "UserService.ChangeUserRoleByLogin.UpdateUser",
+			"login": login,
+			"role":  role.ToString()}).
+		Info("successfully changed userRole")
 	return err
 }
 
 func (serv *UserService) GetAllUsers() ([]models.User, error) {
 	users, err := serv.userRepo.GetAllUsers()
 	if err != nil {
+		serv.logger.WithFields(
+			logrus.Fields{
+				"src": "UserService.GetAllUsers"}).
+			Warn(err)
+
 		return nil, errors.Wrap(err, ERROR_GETTING_USERS_STR)
 	}
+	serv.logger.WithFields(
+		logrus.Fields{
+			"src": "UserService.GetAllUsers"}).
+		Info("successfully got all users data")
 	return users, err
 }

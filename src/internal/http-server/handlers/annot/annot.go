@@ -109,7 +109,7 @@ func (h *AnnotHandler) GetAnnot() http.HandlerFunc {
 		var req RequestID
 		err := render.DecodeJSON(r.Body, &req)
 		if err != nil {
-			render.JSON(w, r, response.Error(ErrDecodingRequest.Error())) //TODO:: add logging here
+			render.JSON(w, r, response.Error(ErrDecodingRequest.Error()))
 			h.log.Warn(err)
 			return
 		}

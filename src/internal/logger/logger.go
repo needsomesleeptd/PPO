@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net"
 	"os"
+	"syscall"
 
 	"github.com/sirupsen/logrus"
 	easy "github.com/t-tomalak/logrus-easy-formatter"
@@ -21,10 +22,9 @@ func (hook *DatabaseRefusedConnHook) Levels() []logrus.Level {
 }
 
 func (hook *DatabaseRefusedConnHook) Fire(entry *logrus.Entry) error {
-
 	var netErr net.OpError
 	if err, ok := entry.Data["error"].(error); ok {
-		if errors.Is(err, &netErr) { // error with gives connection refused
+		if errors.Is(err, &netErr) || errors.Is(err, syscall.ECONNREFUSED) { // error with gives connection refused
 			entry.Level = logrus.ErrorLevel
 		}
 
@@ -34,19 +34,19 @@ func (hook *DatabaseRefusedConnHook) Fire(entry *logrus.Entry) error {
 
 func Setuplog(conf *config.Config) *logrus.Logger {
 
-	log := logrus.New()
+	logger := logrus.New()
 	useFile := conf.Logger.UseFile
 	if useFile {
-		log.Printf("using file %s\n", conf.OutputFilePath)
+		logger.Printf("using file %s\n", conf.OutputFilePath)
 		f, err := os.OpenFile(conf.OutputFilePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
 		if err != nil {
-			log.Printf("Failed to create logfile %s:%s, defaulting to stderr", conf.OutputFilePath, err.Error())
+			logger.Printf("Failed to create logfile %s:%s, defaulting to stderr", conf.OutputFilePath, err.Error())
 			useFile = false
 		}
 
-		log.SetOutput(f)
+		logger.SetOutput(f)
 	} else {
-		log.SetOutput(os.Stderr)
+		logger.SetOutput(os.Stderr)
 	}
 
 	easyFormatter := &easy.Formatter{
@@ -55,15 +55,17 @@ func Setuplog(conf *config.Config) *logrus.Logger {
 	}
 
 	logLevel, _ := logrus.ParseLevel(conf.LogLevel)
-	log.SetFormatter(easyFormatter)
-	/*if conf.OutputFormat == "text" {
-		log.SetFormatter(&logrus.TextFormatter{})
+	logger.SetFormatter(easyFormatter)
+	if conf.OutputFormat == "text" {
+		logger.SetFormatter(&logrus.TextFormatter{
+			QuoteEmptyFields: true,
+		})
 	}
 	if conf.OutputFormat == "json" {
-		log.SetFormatter(&logrus.JSONFormatter{})
-	}*/
-	log.SetReportCaller(true)
-	log.AddHook(&DatabaseRefusedConnHook{})
-	log.SetLevel(logLevel)
-	return log
+		logger.SetFormatter(&logrus.JSONFormatter{})
+	}
+	logger.SetReportCaller(true)
+	logger.AddHook(&DatabaseRefusedConnHook{})
+	logger.SetLevel(logLevel)
+	return logger
 }

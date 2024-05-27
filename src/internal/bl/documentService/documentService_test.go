@@ -63,7 +63,7 @@ func TestDocumentService_LoadDocument(t *testing.T) {
 			},
 			args:    args{document: models.DocumentMetaData{DocumentData: createPDFBuffer(TEST_VALID_PDF)}},
 			wantErr: true,
-			errStr:  errors.New(service.LOADING_DOCUMENT_ERR_STR + ": "),
+			errStr:  errors.New(service.LOADING_DOCUMENT_ERR_STRF + ": "),
 		},
 		{
 			name:    "invalid file format",
@@ -153,7 +153,7 @@ func TestDocumentService_CheckDocument(t *testing.T) {
 			},
 			args:    args{document: models.DocumentMetaData{DocumentData: createPDFBuffer(TEST_VALID_PDF)}},
 			wantErr: true,
-			errStr:  errors.New(service.CHECKING_DOCUMENT_ERR_STR + ": "),
+			errStr:  errors.New(service.CHECKING_DOCUMENT_ERR_STRF + ": "),
 			want:    nil,
 		},
 		{

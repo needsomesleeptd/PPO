@@ -41,55 +41,135 @@ func NewAnotattionTypeService(logSrc *logrus.Logger, pRep repository.IAnotattion
 
 func (serv *AnotattionTypeService) AddAnottationType(anotattionType *models.MarkupType) error {
 	if len(anotattionType.ClassName) == 0 {
-		serv.log.Infof("error inserting empty class ID %v:%v\n", anotattionType.ID, ErrInsertingEmptyClass)
+
+		serv.log.WithFields(
+			logrus.Fields{
+				"src":         "AnnotTypeService.AddAnottationType",
+				"annotTypeID": anotattionType.ID}).
+			Info("inserting with empty classname")
+
 		return ErrInsertingEmptyClass
 	}
-	err := serv.repo.AddAnottationType(anotattionType)
+	err := serv.repo.AddAnottationType(anotattionType) // Here might be error or warning, important
 	if err != nil {
+
+		serv.log.WithFields(
+			logrus.Fields{
+				"src":         "AnnotTypeService.AddAnottationType",
+				"annotTypeID": anotattionType.ID}).
+			Error(err)
+
 		return errors.Wrapf(err, ADDING_ANNOTATTION_ERR_STRF, anotattionType.ID)
 	}
+
+	serv.log.WithFields(
+		logrus.Fields{
+			"src":         "AnnotTypeService.AddAnottationType",
+			"annotTypeID": anotattionType.ID}).
+		Info(err)
+
 	return err
 }
 
 func (serv *AnotattionTypeService) DeleteAnotattionType(id uint64) error {
 	err := serv.repo.DeleteAnotattionType(id)
 	if err != nil {
+
+		serv.log.WithFields(
+			logrus.Fields{
+				"src":         "AnnotTypeService.DeleteAnottationType",
+				"annotTypeID": id}).
+			Error(err)
+
 		return errors.Wrapf(err, DELETING_ANNOTATTION_ERR_STRF, id)
 	}
+
+	serv.log.WithFields(
+		logrus.Fields{
+			"src":         "AnnotTypeService.DeleteAnottationType",
+			"annotTypeID": id}).
+		Info("successfully deleted annotType with all it's annots")
 	return err
 }
 
 func (serv *AnotattionTypeService) GetAnottationTypeByID(id uint64) (*models.MarkupType, error) {
 	markup, err := serv.repo.GetAnottationTypeByID(id)
 	if err != nil {
+
+		serv.log.WithFields(
+			logrus.Fields{
+				"src":         "AnnotTypeService.GetAnottationTypeByID",
+				"annotTypeID": id}).
+			Error(err)
+
 		return nil, errors.Wrapf(err, GETTING_ANNOTATTION_STR_ERR_STRF, id)
 	}
+
+	serv.log.WithFields(
+		logrus.Fields{
+			"src":         "AnnotTypeService.GetAnottationTypeByID",
+			"annotTypeID": id}).
+		Info("successfully got annotType by ID")
+
 	return markup, err
 }
 
 func (serv *AnotattionTypeService) GetAnottationTypesByIDs(ids []uint64) ([]models.MarkupType, error) {
 	markupTypes, err := serv.repo.GetAnottationTypesByIDs(ids)
 	if err != nil {
+
+		serv.log.WithFields(
+			logrus.Fields{
+				"src":          "AnnotTypeService.GetAnottationTypeByID",
+				"annotTypeIDs": ids}).
+			Error(err)
+
 		return nil, errors.Wrapf(err, GETTING_ANNOTATTION_STR_ERR_STRF, ids)
 	}
-	if len(markupTypes) == 0 {
-		return nil, models.ErrNotFound
-	}
+
+	serv.log.WithFields(
+		logrus.Fields{
+			"src":          "AnnotTypeService.GetAnottationTypeByID",
+			"annotTypeIDs": ids}).
+		Info("successfully got annotTypes by IDs")
 	return markupTypes, err
 }
 
 func (serv *AnotattionTypeService) GetAnottationTypesByUserID(id uint64) ([]models.MarkupType, error) {
 	markupTypes, err := serv.repo.GetAnottationTypesByUserID(id)
 	if err != nil {
+		serv.log.WithFields(
+			logrus.Fields{
+				"src":    "AnnotTypeService.GetAnottationTypesByUserID",
+				"userID": id}).
+			Error(err)
 		return nil, errors.Wrapf(err, GETTING_ANNOTATTION_STR_ERR_STRF, id)
 	}
+
+	serv.log.WithFields(
+		logrus.Fields{
+			"src":    "AnnotTypeService.GetAnottationTypesByUserID",
+			"userID": id}).
+		Info("successfully got annotTypes by userID")
 	return markupTypes, err
 }
 
 func (serv *AnotattionTypeService) GetAllAnottationTypes() ([]models.MarkupType, error) {
 	markupTypes, err := serv.repo.GetAllAnottationTypes()
 	if err != nil {
+
+		serv.log.WithFields(
+			logrus.Fields{
+				"src": "AnnotTypeService.GetAllAnottationTypes"}).
+			Error(err)
+
 		return nil, errors.Wrap(err, "error getting all annotation types")
 	}
+
+	serv.log.WithFields(
+		logrus.Fields{
+			"src": "AnnotTypeService.GetAllAnottationTypes"}).
+		Info("successfully got all annotTypes")
+
 	return markupTypes, err
 }

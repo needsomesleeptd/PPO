@@ -71,6 +71,10 @@ func (repo *AnotattionTypeRepositoryAdapter) GetAnottationTypesByIDs(ids []uint6
 		return nil, errors.Wrap(tx.Error, "Error in getting anotattion type db")
 	}
 	markUpTypes := models_da.FromDaMarkupTypeSlice(markUpTypesDA)
+	if len(markUpTypes) == 0 {
+		return nil, models.ErrNotFound
+	}
+
 	return markUpTypes, nil
 }
 

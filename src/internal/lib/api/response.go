@@ -22,3 +22,5 @@ func Error(msg string) Response {
 		Error:  msg,
 	}
 }
+
+

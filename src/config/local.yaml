@@ -25,10 +25,10 @@ http_server:
   idle_timeout: 40s
 
 logger:
-  log_level: WARN
+  log_level: INFO
   output_filepath : ../../logs/log
   use_file: false
-  log_format: "[%lvl%]: %time% - %msg%"
+  log_format: "[%lvl%]: %time% - %msg%\n"
   timestamp_format : "2006-01-02 15:04:05"
   output_format : text
 

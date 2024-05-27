@@ -55,7 +55,7 @@ func (h *UserHandler) ChangeUserPerms() http.HandlerFunc {
 			h.logger.Warn(err.Error())
 			return
 		}
-		h.logger.Infof("successfully changed role of user with login %v to to role %v\n", req.Login, req.ReqRole)
+		h.logger.Infof("successfully changed role of user with login %v  to role %v\n", req.Login, req.ReqRole)
 		render.JSON(w, r, response.OK())
 	}
 }
