@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/go-chi/render"
+	"github.com/sirupsen/logrus"
 )
 
 type contextKeyRole struct{}
@@ -30,23 +31,39 @@ var (
 	RoleContextKey   = "contextKeyID{}"
 )
 
-func JwtAuthMiddleware(next http.Handler, secret string, tokenHandler auth_utils.ITokenHandler) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+func NewJwtAuthMiddleware(loggerSrc *logrus.Logger, secretSrc string, tokenHandlerSrc auth_utils.ITokenHandler) JwtAuthMiddleware {
+	return JwtAuthMiddleware{
+		secret:       secretSrc,
+		tokenHandler: tokenHandlerSrc,
+		logger:       loggerSrc,
+	}
+}
 
+type JwtAuthMiddleware struct {
+	logger       *logrus.Logger
+	secret       string
+	tokenHandler auth_utils.ITokenHandler
+}
+
+func (m *JwtAuthMiddleware) MiddlewareFunc(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token := r.Header.Get("Authorization")
 		if token == "" {
+			m.logger.Info("user with no token came")
 			render.JSON(w, r, response.Error("Error in parsing token"))
 			render.Status(r, http.StatusBadRequest)
 			return
 		}
 		token = strings.TrimPrefix(token, "Bearer ")
 
-		payload, err := tokenHandler.ParseToken(token, auth_service.SECRET)
+		payload, err := m.tokenHandler.ParseToken(token, auth_service.SECRET)
 		if err != nil {
 			if err == auth_utils.ErrParsingToken {
+				m.logger.Info("user with invalid jwt came")
 				render.JSON(w, r, response.Error(err.Error()))
 				render.Status(r, http.StatusBadRequest)
 			} else {
+				m.logger.Info("user with invalid jwt came")
 				render.JSON(w, r, response.Error(err.Error()))
 				render.Status(r, http.StatusUnauthorized)
 			}
@@ -54,8 +71,14 @@ func JwtAuthMiddleware(next http.Handler, secret string, tokenHandler auth_utils
 		}
 		ctx := context.WithValue(r.Context(), UserIDContextKey, payload.ID)
 		ctx = context.WithValue(ctx, RoleContextKey, payload.Role)
-		//ctx = r.Clone(ctx)
+
+		m.logger.WithFields(
+			logrus.Fields{
+				"src":    "JwtAuthMiddleware.MiddleFunc",
+				"userID": payload.ID,
+				"role":   payload.Role}).
+			Info("successfully authorized")
 
 		next.ServeHTTP(w, r.WithContext(ctx))
-	}
+	})
 }

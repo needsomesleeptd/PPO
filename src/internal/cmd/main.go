@@ -126,14 +126,11 @@ func main() {
 	router := chi.NewRouter()
 	//router.Use(middleware.Logger)
 
-	authMiddleware := (func(h http.Handler) http.Handler {
-		return auth_middleware.JwtAuthMiddleware(h, auth_service.SECRET, tokenHandler)
-	})
-
-	accesMiddleware := access_middleware.NewAccessMiddleware(userService)
+	authMiddleware := auth_middleware.NewJwtAuthMiddleware(log, auth_service.SECRET, tokenHandler)
+	accesMiddleware := access_middleware.NewAccessMiddleware(log, userService)
 
 	router.Group(func(r chi.Router) { // group for which auth middleware is required
-		r.Use(authMiddleware)
+		r.Use(authMiddleware.MiddlewareFunc)
 
 		// Document
 		r.Route("/document", func(r chi.Router) {
