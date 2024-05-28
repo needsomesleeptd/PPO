@@ -42,7 +42,7 @@ func (serv *UserService) ChangeUserRoleByLogin(login string, role models.Role) e
 				"src":   "UserService.ChangeUserRoleByLogin.GetUser",
 				"login": login,
 				"role":  role.ToString()}).
-			Warn(err)
+			Error(err)
 		return errors.Wrap(err, fmt.Sprintf("error changing user role with login %v wanted role %v", login, role))
 	}
 	user.Role = role
@@ -53,7 +53,7 @@ func (serv *UserService) ChangeUserRoleByLogin(login string, role models.Role) e
 				"src":   "UserService.ChangeUserRoleByLogin.UpdateUser",
 				"login": login,
 				"role":  role.ToString()}).
-			Warn(err)
+			Error(err)
 		return errors.Wrap(err, fmt.Sprintf("error changing user role with login %v wanted role %v", login, role))
 	}
 	serv.logger.WithFields(
@@ -71,7 +71,7 @@ func (serv *UserService) GetAllUsers() ([]models.User, error) {
 		serv.logger.WithFields(
 			logrus.Fields{
 				"src": "UserService.GetAllUsers"}).
-			Warn(err)
+			Error(err)
 
 		return nil, errors.Wrap(err, ERROR_GETTING_USERS_STR)
 	}
