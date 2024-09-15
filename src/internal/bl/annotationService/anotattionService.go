@@ -87,10 +87,11 @@ func (serv *AnotattionService) AddAnottation(anotattion *models.Markup) error {
 
 	err = serv.repo.AddAnottation(anotattion)
 	if err != nil {
-		serv.logger.WithFields(
+		logFields := serv.logger.WithFields(
 			logrus.Fields{"userID": anotattion.CreatorID,
-				"src": "AnnotService.Add"}).
-			Warn(err)
+				"src": "AnnotService.Add"})
+
+		logFields.Warn(err)
 
 		return errors.Wrapf(err, ADDING_ANNOT_ERR_CREATOR_STRF, anotattion.CreatorID)
 	}
