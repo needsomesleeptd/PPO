@@ -43,3 +43,11 @@ VALUES (154,'Отсутствует знак препинания в конце 
 
 INSERT INTO markup_types (id,description,creator_id,class_name)
 VALUES (0,'Ошибок нет, все хорошо))',1,'no_errors');
+
+
+
+
+--outside errs
+INSERT INTO documents (id, page_count, document_name, checks_count, creator_id, creation_time,has_passed,checked_status) 
+VALUES 
+('00000000-0000-0000-0000-000000000000', -1, 'empty_document', 0, 1, '2024-05-10 13:48:59.541053',false, -1);

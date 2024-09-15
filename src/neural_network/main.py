@@ -9,6 +9,7 @@ import fitz
 import matplotlib
 import matplotlib.pyplot as plt
 
+from detectors_list import create_all_detectors
 
 app = Flask(__name__)
 app.config['DEBUG'] = True
@@ -29,7 +30,7 @@ def image_post_request():
         png_img,byte_img = extract_page_by_num(pdf_document,i)
         #plt.imshow(png_img)
         #plt.show()
-        annots_page = get_anotattions(png_img,byte_img,model)
+        annots_page = get_anotattions(png_img,byte_img,model,create_all_detectors())
         annots.extend(annots_page)
     if len(annots) == 0:
         return jsonify([])
@@ -40,6 +41,6 @@ def image_post_request():
 
 
 if __name__ == "__main__":
-    yolo_model=YOLO('./best.pt').to('cuda')
+    yolo_model=YOLO('./best.pt')#.to('cuda')
     model = yolo_model
     app.run(host="0.0.0.0", port=5000)

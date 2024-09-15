@@ -21,7 +21,7 @@ var (
 	pdfFileFilename = "check.pdf"
 	imgFolderPath   = "images/"
 	fileFormat      = ".png"
-	texHeader       = "\\documentclass{article}\n\\usepackage{graphicx}\n\n\\begin{document}\n\\section{Error Report}\n"
+	texHeader       = "\\documentclass{article}\n\\usepackage[utf8]{inputenc}\n\\usepackage[T1,T2A]{fontenc}\n\\usepackage[russian,english]{babel}\n\\usepackage{graphicx}\n\\begin{document}\n\\section{Отчет об ошибках}\n"
 	texTail         = "\\end{document}"
 )
 
