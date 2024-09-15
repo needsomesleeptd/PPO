@@ -5,12 +5,21 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"mime/multipart"
 	"net/http"
+
+	"github.com/sirupsen/logrus"
 )
 
 var (
-	ErrMarshallingRequest = errors.New("error in Marshalling NN request")
-	ErrGettingResponse    = errors.New("error in getting NN response")
+	ErrMarshallingRequest    = errors.New("error in Marshalling NN request")
+	ErrUnMarshallingResponse = errors.New("error in Unmarshalling NN request")
+	ErrGettingResponse       = errors.New("error in getting NN response")
+	ErrCreatingFormData      = errors.New("error in creating Form Data")
+	ErrCreatingRequest       = errors.New("error in creating request")
+
+	PdfFieldName = "document_data"
+	PdfFileName  = "request_file.pdf"
 )
 
 type IModelHandler interface {
@@ -19,10 +28,11 @@ type IModelHandler interface {
 
 type HttpModelHandler struct {
 	Url string
+	log *logrus.Logger
 }
 
-func NewHttpModelHandler(url string) IModelHandler {
-	return &HttpModelHandler{Url: url}
+func NewHttpModelHandler(logSrc *logrus.Logger, url string) IModelHandler {
+	return &HttpModelHandler{log: logSrc, Url: url}
 }
 
 type ModelRequest struct {
@@ -30,16 +40,38 @@ type ModelRequest struct {
 }
 
 func (h *HttpModelHandler) GetModelResp(req ModelRequest) ([]models_dto.Markup, error) {
-	jsonReq, err := json.Marshal(req)
+
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+	part, err := writer.CreateFormFile(PdfFieldName, PdfFileName)
+
 	if err != nil {
-		return nil, errors.Join(ErrMarshallingRequest, err)
+		return nil, errors.Join(ErrCreatingFormData, err)
 	}
-	buffer := bytes.NewBuffer(jsonReq)
-	jsonResp, err := http.Post(h.Url, "application/json", buffer)
+
+	_, err = part.Write(req.DocumentData)
 	if err != nil {
+		return nil, errors.Join(ErrCreatingFormData, err)
+	}
+	writer.Close()
+	reqModel, err := http.NewRequest("POST", h.Url, body)
+
+	if err != nil {
+		return nil, errors.Join(ErrCreatingFormData, err)
+	}
+	reqModel.Header.Set("Content-Type", writer.FormDataContentType())
+
+	jsonResp, err := http.DefaultClient.Do(reqModel)
+	if err != nil {
+		h.log.Errorf("error getting model response: %v\n", err)
 		return nil, errors.Join(ErrGettingResponse, err)
 	}
+
 	var markupsDto []models_dto.Markup
-	json.NewDecoder(jsonResp.Body).Decode(&markupsDto)
+
+	err = json.NewDecoder(jsonResp.Body).Decode(&markupsDto)
+	if err != nil {
+		return nil, errors.Join(ErrUnMarshallingResponse, err)
+	}
 	return markupsDto, nil
 }

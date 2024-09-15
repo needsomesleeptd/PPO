@@ -34,7 +34,7 @@ services:
       - "-c"
       - "pg_stat_statements.track=all"
     environment:
-      POSTGRES_DB: "lab01db"
+      POSTGRES_DB: "postgres"
       POSTGRES_USER: "andrew"
       POSTGRES_PASSWORD: "1"
       PGDATA: "/var/lib/postgresql/data/pgdata"

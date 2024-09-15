@@ -96,10 +96,10 @@ func TestAnottationService_AddAnnotation(t *testing.T) {
 				},
 				PageData: createPNGBuffer(nil),
 			}},
-			errStr: errors.New(service.INVALID_FILE_ERR_STR),
+			errStr: errors.New(service.INVALID_FILE_ERR_STR + ": image: unknown format"),
 		},
 	}
-
+	image.RegisterFormat("png", "\x89PNG\r\n\x1a\n", png.Decode, png.DecodeConfig)
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)

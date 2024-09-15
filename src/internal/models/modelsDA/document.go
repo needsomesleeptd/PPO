@@ -3,35 +3,50 @@ package models_da //stands for data_acess
 import (
 	"annotater/internal/models"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type Document struct {
-	ID           uint64    `gorm:"primaryKey;column:id"`
+	ID           uuid.UUID `gorm:"primaryKey;column:id"`
 	PageCount    int       `gorm:"column:page_count"`
-	DocumentData []byte    `gorm:"column:document_data"`
+	DocumentName string    `gorm:"column:document_name"`
 	ChecksCount  int       `gorm:"column:checks_count"`
-	CreatorID    uint64    `gorm:"column:creator_id"`
+	CreatorID    uint64    `gorm:"column:creator_id;"`
 	CreationTime time.Time `gorm:"column:creation_time"`
 }
 
-func FromDaDocument(documentDa *Document) models.Document {
-	return models.Document{
+func FromDaDocument(documentDa *Document) models.DocumentMetaData {
+	return models.DocumentMetaData{
 		ID:           documentDa.ID,
 		PageCount:    documentDa.PageCount,
-		DocumentData: documentDa.DocumentData,
-		ChecksCount:  documentDa.ChecksCount,
+		DocumentName: documentDa.DocumentName,
 		CreatorID:    documentDa.CreatorID,
 		CreationTime: documentDa.CreationTime,
 	}
 
 }
 
-func ToDaDocument(document models.Document) *Document {
+func FromDaDocumentSlice(documentsDa []Document) []models.DocumentMetaData {
+
+	if documentsDa == nil {
+		return nil
+	}
+	documents := make([]models.DocumentMetaData, len(documentsDa))
+
+	for i, documentDA := range documentsDa {
+		documents[i] = FromDaDocument(&documentDA)
+
+	}
+	return documents
+
+}
+
+func ToDaDocument(document models.DocumentMetaData) *Document {
 	return &Document{
 		ID:           document.ID,
 		PageCount:    document.PageCount,
-		DocumentData: document.DocumentData,
-		ChecksCount:  document.ChecksCount,
+		DocumentName: document.DocumentName,
 		CreatorID:    document.CreatorID,
 		CreationTime: document.CreationTime,
 	}

@@ -2,15 +2,21 @@ package models
 
 import (
 	"time"
+
+	"github.com/google/uuid"
 )
 
-type Document struct {
-	ID           uint64
+type DocumentMetaData struct {
+	ID           uuid.UUID
 	PageCount    int
-	DocumentData []byte //pdf file -- the whole file
-	ChecksCount  int
+	DocumentName string
 	CreatorID    uint64
 	CreationTime time.Time
+}
+
+type DocumentData struct {
+	ID            uuid.UUID
+	DocumentBytes []byte //pdf file -- the whole file
 }
 
 type Markup struct {
@@ -18,6 +24,7 @@ type Markup struct {
 	PageData   []byte    //png file -- the page data
 	ErrorBB    []float32 //Bounding boxes in yolov8 format
 	ClassLabel uint64
+	CreatorID  uint64
 }
 
 type Role int
@@ -27,6 +34,22 @@ const (
 	Controller
 	Admin
 )
+
+func (r Role) ToString() string {
+
+	switch r {
+	case Sender:
+		return "Sender"
+	case Controller:
+		return "Controller"
+	case Admin:
+		return "Admin"
+
+	default:
+		return "Unknown"
+	}
+
+}
 
 type User struct {
 	ID       uint64
@@ -42,6 +65,12 @@ type MarkupType struct {
 	Description string
 	CreatorID   int
 	ID          uint64
+	ClassName   string
+}
+
+type ErrorReport struct {
+	DocumentID uuid.UUID
+	ReportData []byte
 }
 
 type Token struct {

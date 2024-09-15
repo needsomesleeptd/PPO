@@ -17,6 +17,7 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
+	"github.com/google/uuid"
 	"github.com/signintech/gopdf"
 	"github.com/stretchr/testify/suite"
 	"gorm.io/driver/postgres"
@@ -62,33 +63,54 @@ func (suite *UsecaseRepositoryTestSuite) TearDownTest() {
 
 // testing Document Service
 func (suite *UsecaseRepositoryTestSuite) TestUsecaseAddDocument() {
-	var document *models.Document
+	var document *models.DocumentMetaData
 	userRepo := document_repo_adapter.NewDocumentRepositoryAdapter(suite.db)
-
-	insertedDocument := models.Document{DocumentData: createPDFBuffer(TEST_VALID_PDF)}
+	id := uuid.UUID{2}
+	insertedDocument := models.DocumentMetaData{ID: id, DocumentData: createPDFBuffer(TEST_VALID_PDF)}
 	err := userRepo.AddDocument(&insertedDocument)
 	suite.Require().NoError(err)
-	document, err = userRepo.GetDocumentByID(1)
+	document, err = userRepo.GetDocumentByID(id)
 	suite.Require().NoError(err)
 	suite.Assert().Equal(document.DocumentData, insertedDocument.DocumentData)
-	suite.Assert().Equal(document.ID, uint64(1))
+	suite.Assert().Equal(document.ID, id)
 
 }
 
 func (suite *UsecaseRepositoryTestSuite) TestUsecaseLoadDocument() {
-	var document *models.Document
+	var document *models.DocumentMetaData
 	userRepo := document_repo_adapter.NewDocumentRepositoryAdapter(suite.db)
 	handler := mock_nn_model_handler.NewMockIModelHandler(&gomock.Controller{})
 	nn := nn_adapter.NewDetectionModel(handler)
 	service := service.NewDocumentService(userRepo, nn)
-	id := uint64(2)
-	insertedDocument := models.Document{ID: id, DocumentData: createPDFBuffer(TEST_VALID_PDF)}
+	id := uuid.UUID{2}
+	insertedDocument := models.DocumentMetaData{ID: id, DocumentData: createPDFBuffer(TEST_VALID_PDF)}
 	err := service.LoadDocument(insertedDocument)
 	suite.Assert().NoError(err)
 	document, err = userRepo.GetDocumentByID(id)
 	suite.Require().NoError(err)
 	suite.Assert().Equal(document.DocumentData, insertedDocument.DocumentData)
 	suite.Assert().Equal(document.ID, id)
+}
+
+func (suite *UsecaseRepositoryTestSuite) TestUsecaseCheckDocument() {
+
+	userRepo := document_repo_adapter.NewDocumentRepositoryAdapter(suite.db)
+	ctrl := gomock.NewController(suite.T())
+	handler := mock_nn_model_handler.NewMockIModelHandler(ctrl)
+	nn := nn_adapter.NewDetectionModel(handler)
+	service := service.NewDocumentService(userRepo, nn)
+	id := uuid.UUID{2}
+	insertedDocument := models.DocumentMetaData{ID: id, DocumentData: createPDFBuffer(TEST_VALID_PDF)}
+	marups := []models_dto.Markup{
+		{ErrorBB: []float32{0.1, 0.2, 0.3, 0.2}, ClassLabel: 1},
+		{ErrorBB: []float32{0.3, 0.2, 0.1, 0.3}, ClassLabel: 2},
+	}
+	req := nn_model_handler.ModelRequest{DocumentData: insertedDocument.DocumentData}
+	handler.EXPECT().GetModelResp(req).Return(marups, nil)
+	res, err := service.CheckDocument(insertedDocument)
+	suite.Assert().NoError(err)
+	suite.Assert().Equal(res, models_dto.FromDtoMarkupSlice(marups))
+
 }
 
 func (suite *UsecaseRepositoryTestSuite) TestUsecaseCheckDocument() {
@@ -113,16 +135,16 @@ func (suite *UsecaseRepositoryTestSuite) TestUsecaseCheckDocument() {
 }
 
 func (suite *UsecaseRepositoryTestSuite) TestUsecaseDeleteDocumentID() {
-	document := models.Document{}
+	document := models.DocumentMetaData{}
 	userRepo := document_repo_adapter.NewDocumentRepositoryAdapter(suite.db)
-	id := uint64(2)
-	insertedDocument := models.Document{ID: id, DocumentData: createPDFBuffer(TEST_VALID_PDF)}
+	id := uuid.UUID{2}
+	insertedDocument := models.DocumentMetaData{ID: id, DocumentData: createPDFBuffer(TEST_VALID_PDF)}
 	err := userRepo.AddDocument(&insertedDocument)
 	suite.Require().NoError(err)
-	suite.Assert().NoError(suite.db.Table("documents").First(&document, models.Document{ID: id}).Error)
+	suite.Assert().NoError(suite.db.Table("documents").First(&document, models.DocumentMetaData{ID: id}).Error)
 	err = userRepo.DeleteDocumentByID(id)
 	suite.Require().NoError(err)
-	suite.Assert().Error(suite.db.Table("documents").First(&document, models.Document{ID: id}).Error)
+	suite.Assert().Error(suite.db.Table("documents").First(&document, models.DocumentMetaData{ID: id}).Error)
 
 }
 

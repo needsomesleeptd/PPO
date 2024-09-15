@@ -33,6 +33,11 @@ func (repo *UserRepositoryAdapter) GetUserByID(id uint64) (*models.User, error) 
 func (repo *UserRepositoryAdapter) GetUserByLogin(login string) (*models.User, error) {
 	var user_da models_da.User
 	tx := repo.db.Where("login = ?", login).First(&user_da)
+
+	if tx.Error == gorm.ErrRecordNotFound {
+		return nil, models.ErrNotFound
+	}
+
 	if tx.Error != nil {
 		return nil, errors.Wrap(tx.Error, "Error getting user by ID")
 	}
@@ -41,8 +46,9 @@ func (repo *UserRepositoryAdapter) GetUserByLogin(login string) (*models.User, e
 }
 
 func (repo *UserRepositoryAdapter) UpdateUserByLogin(login string, user *models.User) error {
-	user_da := models_da.ToDaUser(*user)
-	tx := repo.db.Where("login = ?", login).Updates(user_da)
+	userDA := models_da.ToDaUser(*user)
+
+	tx := repo.db.Model(&models_da.User{}).Where("login = ?", login).Updates(userDA)
 	if tx.Error != nil {
 		return errors.Wrap(tx.Error, "Error in updating user")
 	}
@@ -60,8 +66,22 @@ func (repo *UserRepositoryAdapter) DeleteUserByLogin(login string) error {
 func (repo *UserRepositoryAdapter) CreateUser(user *models.User) error {
 
 	tx := repo.db.Create(models_da.ToDaUser(*user))
+	if tx.Error == gorm.ErrDuplicatedKey {
+		return models.ErrDuplicateuserData
+	}
+
 	if tx.Error != nil {
-		return errors.Wrap(tx.Error, "Error in updating user")
+		return errors.Wrap(tx.Error, "error in creating user")
 	}
 	return nil
+}
+
+func (repo *UserRepositoryAdapter) GetAllUsers() ([]models.User, error) {
+	var usersDA []models_da.User
+	tx := repo.db.Find(&usersDA)
+	if tx.Error != nil {
+		return nil, errors.Wrap(tx.Error, "Error in getting all users")
+	}
+	users := models_da.FromDaUserSlice(usersDA)
+	return users, nil
 }

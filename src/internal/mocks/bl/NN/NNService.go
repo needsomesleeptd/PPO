@@ -35,7 +35,7 @@ func (m *MockINeuralNetwork) EXPECT() *MockINeuralNetworkMockRecorder {
 }
 
 // Predict mocks base method.
-func (m *MockINeuralNetwork) Predict(document models.Document) ([]models.Markup, error) {
+func (m *MockINeuralNetwork) Predict(document models.DocumentMetaData) ([]models.Markup, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Predict", document)
 	ret0, _ := ret[0].([]models.Markup)
